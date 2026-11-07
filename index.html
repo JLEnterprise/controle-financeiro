@@ -40,7 +40,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px
 nav.tabs{display:flex;gap:2px;margin-left:auto}
 nav.tabs button{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--mute);font:500 14px var(--sans);padding:9px 14px;border-radius:10px;cursor:pointer}
 nav.tabs button:hover{color:var(--text)}
-nav.tabs button.on{color:var(--ink);background:var(--gold)}
+nav.tabs button.on{color:var(--ink);background:linear-gradient(135deg,#F1E3C4,#D2B47C 55%,#B8955C);box-shadow:0 6px 16px -8px rgba(210,180,124,.7)}
 nav.tabs svg{width:18px;height:18px}
 .iconbtn{background:none;border:1px solid var(--line);color:var(--text2);width:38px;height:38px;border-radius:10px;display:grid;place-items:center;cursor:pointer;flex:none}
 .iconbtn:hover{border-color:var(--gold2);color:var(--gold)}
@@ -153,8 +153,10 @@ label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mute
 input,select{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font:15px var(--sans);outline:none}
 input:focus,select:focus{border-color:var(--gold2)}
 input[type=month],input[type=date]{color-scheme:dark}
-.btn{background:var(--gold);color:var(--ink);border:0;border-radius:11px;padding:11px 16px;font:600 14px var(--sans);cursor:pointer;white-space:nowrap}
-.btn:hover{background:#e4d2b3}
+.btn{background:linear-gradient(135deg,#F1E3C4 0%,#D2B47C 55%,#B8955C 100%);color:var(--ink);border:0;border-radius:11px;padding:11px 16px;font:600 14px var(--sans);cursor:pointer;white-space:nowrap;
+  box-shadow:0 8px 20px -10px rgba(210,180,124,.7),inset 0 1px 0 rgba(255,255,255,.45)}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost,.btn.danger{box-shadow:none;filter:none}
 .btn.ghost{background:none;color:var(--text2);border:1px solid var(--line);font-weight:500}
 .btn.ghost:hover{border-color:var(--gold2);color:var(--gold)}
 .btn.danger{background:none;color:var(--bad);border:1px solid rgba(238,124,124,.35);font-weight:500}
@@ -167,7 +169,27 @@ input[type=month],input[type=date]{color-scheme:dark}
 .swatches input:checked+span{border-color:var(--text)}
 .swatches input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
 
+/* contorno de luz suave em todos os quadros */
+.panel,.stat,.gasto,.hero-main{border-color:rgba(216,195,160,.15);
+  box-shadow:0 0 0 1px rgba(216,195,160,.03),0 0 26px -10px rgba(216,195,160,.22),inset 0 1px 0 rgba(255,255,255,.035)}
+.gasto:hover,.stat:hover{border-color:rgba(216,195,160,.24)}
+
 /* lançamentos */
+.seg{display:inline-flex;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:13px;padding:4px;flex-wrap:wrap}
+.seg button{background:none;border:0;color:var(--mute);font:600 14px var(--sans);padding:9px 16px;border-radius:10px;cursor:pointer;display:flex;gap:7px;align-items:center}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:linear-gradient(135deg,#F1E3C4,#D2B47C 55%,#B8955C);color:var(--ink)}
+.seg button.on.out{background:rgba(238,124,124,.16);color:var(--bad);box-shadow:inset 0 0 0 1px rgba(238,124,124,.35)}
+.seg button.on.in{background:rgba(92,200,160,.16);color:var(--ok);box-shadow:inset 0 0 0 1px rgba(92,200,160,.35)}
+.resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 18px}
+.resumo .stat{min-height:92px}
+@media (max-width:600px){.resumo{grid-template-columns:1fr 1fr}.resumo .stat:last-child{grid-column:1/-1}}
+.tipo{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font:700 16px var(--sans)}
+.tipo.out{background:rgba(238,124,124,.12);color:var(--bad)}
+.tipo.in{background:rgba(92,200,160,.12);color:var(--ok)}
+.val-in{color:var(--ok)}
+.form-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.form-head h2{font-family:var(--serif);font-weight:500;font-size:22px;margin:0}
 .toolbar{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:16px}
 @media (max-width:700px){.toolbar{grid-template-columns:1fr 1fr}.toolbar .search{grid-column:1/-1}}
 .gasto{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
@@ -204,7 +226,7 @@ tr:last-child td{border-bottom:0}
   main{padding:20px 16px 110px}
   nav.tabs{position:fixed;left:0;right:0;bottom:0;margin:0;justify-content:space-around;background:rgba(14,20,36,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
   nav.tabs button{flex-direction:column;gap:3px;font-size:11px;padding:6px 8px;flex:1}
-  nav.tabs button.on{background:none;color:var(--gold)}
+  nav.tabs button.on{background:linear-gradient(135deg,#F1E3C4,#D2B47C 55%,#B8955C);color:var(--ink);border-radius:12px;box-shadow:0 6px 16px -8px rgba(210,180,124,.7)}
   .brand-wrap{margin-right:auto}
   .toast{bottom:96px}
   .hero-main{padding:22px 20px}
@@ -313,13 +335,17 @@ let usuario = null;
 
 /* ================= dados ================= */
 const KEY = 'ctrl-fin-v1';
-const CATEGORIAS = ['Eletrônicos','Serviços','Vestuário','Alimentação','Mercado','Transporte','Moradia','Saúde','Lazer','Assinaturas','Compras','Contas','Educação','Outros'];
+const CATEGORIAS = ['Eletrônicos','Serviços','Vestuário','Alimentação','Mercado','Transporte','Moradia','Saúde','Lazer','Assinaturas','Compras','Contas','Educação','Financiamento','Empréstimo','Pensão paga','Impostos e taxas','Outros'];
+const CAT_ENTRADA = ['Salário extra','Pensão recebida','Recebimento de processo','Recebimento de causa','Honorários','Comissão','Freelance / bico','Venda','Reembolso','Pix recebido','Rendimentos','Presente / doação','Outros recebimentos'];
+const FORMAS = { pix:'Pix, débito ou dinheiro', boleto:'Boleto', financiamento:'Financiamento ou empréstimo' };
+const PARCELAS_OPC = [...Array(24).keys()].map(i => i + 1).concat([30, 36, 48, 60, 72]);
+const optsParcelas = (sel = 1, umaVez = 'À vista') => PARCELAS_OPC.map(n => `<option value="${n}" ${n === sel ? 'selected' : ''}>${n === 1 ? umaVez : n + 'x'}</option>`).join('');
 const CORES = ['#C8423B','#2F6FD6','#1E9E6A','#7A4FD0','#D9852B','#C9A15A','#2B9AA8','#3A4256'];
 
-const vazio = () => ({ v:1, cartoes:[], gastos:[], fixas:[], renda:0, orcamento:0, seeds:['lote-2026-11'] });
+const vazio = () => ({ v:1, cartoes:[], gastos:[], entradas:[], fixas:[], renda:0, orcamento:0, seeds:['lote-2026-11'] });
 function normalizar(d){
   if(!d || d.v !== 1) d = vazio();
-  d.cartoes = d.cartoes || []; d.gastos = d.gastos || []; d.fixas = d.fixas || [];
+  d.cartoes = d.cartoes || []; d.gastos = d.gastos || []; d.fixas = d.fixas || []; d.entradas = d.entradas || [];
   d.renda = d.renda || 0; d.orcamento = d.orcamento || 0; d.seeds = d.seeds || ['lote-2026-11'];
   return d;
 }
@@ -454,7 +480,10 @@ function todosAtrasos(){
   db.fixas.forEach(f => { let r = f.desde; while(r <= cur){ refs.add(r); r = nextRef(r); } });
   return [...refs].flatMap(r => compromissos(r)).filter(x => stOf(x) === 'atrasada');
 }
-const baseMensal = () => db.orcamento > 0 ? db.orcamento : db.renda;
+// Recebimentos avulsos (não são a renda fixa): entram no mês em que caem
+const parcelasEntrada = () => db.entradas.flatMap(e => e.parcelas.map((p, i) => ({ ...p, eid:e.id, idx:i, desc:e.descricao, categoria:e.categoria, total:e.n })));
+const entradasDoMes = ref => sum(parcelasEntrada().filter(p => p.ref === ref), p => p.valor);
+const baseMensal = (ref = MES_ATUAL()) => db.orcamento > 0 ? db.orcamento : db.renda + entradasDoMes(ref);
 
 /* ================= dados informados (aplicados uma única vez) ================= */
 function aplicarLote(){
@@ -546,7 +575,9 @@ function vInicio(){
   const pago = sum(itens.filter(x => x.paga), x => x.valor);
   const atrasos = todosAtrasos();
   const totAtraso = sum(atrasos, x => x.valor);
-  const base = baseMensal();
+  const base = baseMensal(cur);
+  const extras = entradasDoMes(cur);
+  const extrasRecebidos = sum(parcelasEntrada().filter(p => p.ref === cur && p.status === 'recebida'), p => p.valor);
   const d = hoje(); const ultimo = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
   const diasRest = ultimo - d.getDate() + 1;
   const livre = base - total;
@@ -562,7 +593,7 @@ function vInicio(){
         ? `Sobram ${M(livre)} até o fim de ${mesSo(cur).toLowerCase()}, divididos pelos ${diasRest} dias que faltam.`
         : `Os compromissos de ${mesSo(cur).toLowerCase()} passam ${M(-livre)} do seu ${db.orcamento > 0 ? 'limite de gastos' : 'salário'}.`}</div>
       <div class="meter"><i class="${pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : ''}" style="width:${pct}%"></i></div>
-      <div class="meter-legend"><span>${M(total)} comprometido</span><span>${db.orcamento > 0 ? 'Limite' : 'Renda'} de ${M(base)}</span></div>`;
+      <div class="meter-legend"><span>${M(total)} comprometido</span><span>${db.orcamento > 0 ? `Limite de ${M(base)}` : extras > 0 ? `Renda + extras: ${M(base)}` : `Renda de ${M(base)}`}</span></div>`;
   } else {
     hero = `
       <div class="hero-label">Livre para gastar hoje</div>
@@ -581,7 +612,8 @@ function vInicio(){
   <section class="hero">
     <div class="hero-main">${hero}</div>
     <div class="hero-side">
-      <div class="stat wide"><span class="k">Compromissos de ${mesSo(cur).toLowerCase()}</span><span class="v num"><span class="money">${brl(total)}</span></span></div>
+      <div class="stat"><span class="k">Compromissos de ${mesSo(cur).toLowerCase()}</span><span class="v num"><span class="money">${brl(total)}</span></span></div>
+      <div class="stat" style="cursor:pointer" onclick="filtro.tipo='in';filtro.status='';setTab('lanc')" title="Ver recebimentos"><span class="k">Extras de ${mesSo(cur).toLowerCase()}</span><span class="v num ok"><span class="money">${brl(extras)}</span></span>${extras > extrasRecebidos ? `<span class="mute small">${M(extras - extrasRecebidos)} a receber</span>` : ''}</div>
       <div class="stat"><span class="k">Já pago</span><span class="v num ok"><span class="money">${brl(pago)}</span></span></div>
       <div class="stat"><span class="k">${atrasos.length ? `Em atraso, ${atrasos.length} conta${atrasos.length > 1 ? 's' : ''}` : 'Em atraso'}</span><span class="v num ${atrasos.length ? 'bad' : ''}"><span class="money">${brl(totAtraso)}</span></span></div>
     </div>
@@ -643,9 +675,11 @@ function avisos(atrasos){
   if(fins.length) out.push(['ok', I.check, `<b>${fins.map(x => esc(x.desc)).join(', ')}</b> ${fins.length > 1 ? 'terminam' : 'termina'} nesta fatura. A partir de ${mesSo(nextRef(cur)).toLowerCase()} sobram ${M(sum(fins, x => x.valor))} por mês.`]);
   const a = sum(compromissos(cur), x => x.valor), b = sum(compromissos(nextRef(cur)), x => x.valor);
   if(a > 0 && b < a - 0.01 && !fins.length) out.push(['ok', I.up, `Em ${mesSo(nextRef(cur)).toLowerCase()} seus compromissos caem para ${M(b)}.`]);
-  if(baseMensal() > 0){
+  const aReceber = parcelasEntrada().filter(p => p.ref === cur && p.status !== 'recebida');
+  if(aReceber.length) out.push(['ok', I.up, `<b>${M(sum(aReceber, p => p.valor))} a receber em ${mesSo(cur).toLowerCase()}</b>: ${aReceber.slice(0, 3).map(p => esc(p.desc)).join(', ')}${aReceber.length > 3 ? '…' : ''}. Marque quando cair na conta.`]);
+  if(baseMensal(nextRef(cur)) > 0){
     const r = nextRef(cur), v = sum(compromissos(r), x => x.valor);
-    if(v > baseMensal()) out.push(['warn', I.up, `<b>${mesSo(r)} já passa da sua ${db.orcamento > 0 ? 'meta' : 'renda'}</b>: ${M(v)} comprometidos.`]);
+    if(v > baseMensal(r)) out.push(['warn', I.up, `<b>${mesSo(r)} já passa da sua ${db.orcamento > 0 ? 'meta' : 'renda'}</b>: ${M(v)} comprometidos.`]);
   }
   if(!out.length) return '<div class="empty">Nenhum aviso. Suas contas estão sob controle.</div>';
   return out.slice(0, 5).map(([k, ic, t]) => `<div class="alert ${k}"><div class="ic">${ic}</div><div>${t}</div></div>`).join('');
@@ -753,26 +787,48 @@ function delCartao(id){
 }
 
 /* ================= LANÇAMENTOS ================= */
-let filtro = { q:'', cartao:'', status:'ativos' }, novoGasto = false, editGasto = null, abertos = new Set();
+let filtro = { q:'', cartao:'', status:'ativos', tipo:'' }, novoGasto = false, novoTipo = 'out', editGasto = null, editEntrada = null, abertos = new Set();
+function abrirNovo(tipo){ novoGasto = true; novoTipo = tipo; render(); }
 function formNovoGasto(){
-  return `<div class="panel" style="margin-bottom:16px"><div class="sec-h"><h2>Novo lançamento</h2></div>
+  const isIn = novoTipo === 'in';
+  const seg = `<div class="seg" role="tablist" aria-label="Tipo de lançamento">
+      <button type="button" class="${!isIn ? 'on out' : ''}" onclick="novoTipo='out';render()">− Gasto</button>
+      <button type="button" class="${isIn ? 'on in' : ''}" onclick="novoTipo='in';render()">+ Recebimento</button></div>`;
+  const cancelar = `<button type="button" class="btn ghost" onclick="novoGasto=false;render()">Cancelar</button>`;
+  const corpo = isIn ? `
+  <form class="form" onsubmit="addEntrada(event)">
+    <label>Descrição<input id="e-desc" required placeholder="Ex.: Honorários do processo"></label>
+    <label>Valor (R$)<input id="e-valor" type="number" step="0.01" min="0.01" required></label>
+    <label>Recebe em<select id="e-n">${optsParcelas(1, 'Uma vez só')}</select></label>
+    <label>Esse valor é<select id="e-tipo"><option value="parcela">De cada vez</option><option value="total">Total a receber</option></select></label>
+    <label>Categoria<select id="e-cat">${CAT_ENTRADA.map(c => `<option>${c}</option>`).join('')}</select></label>
+    <label>Data do recebimento<input id="e-data" type="date" value="${fmtISO(hoje())}" required></label>
+    <label>Situação<select id="e-st"><option value="sim">Já recebi</option><option value="nao">Ainda vou receber</option></select></label>
+    <p class="mute small" style="grid-column:1/-1;margin:0">Use para valores fora da sua renda fixa: um extra, uma causa ganha, uma pensão. Eles somam no quanto você pode gastar no mês em que caem.</p>
+    <div class="row" style="grid-column:1/-1"><button class="btn">Adicionar recebimento</button>${cancelar}</div>
+  </form>` : `
   <form class="form" onsubmit="addGasto(event)">
     <label>Descrição<input id="g-desc" required placeholder="Ex.: Notebook"></label>
     <label>Valor (R$)<input id="g-valor" type="number" step="0.01" min="0.01" required></label>
+    <label>Parcelas<select id="g-n">${optsParcelas(1)}</select></label>
     <label>Esse valor é<select id="g-tipo"><option value="parcela">De cada parcela</option><option value="total">Total da compra</option></select></label>
-    <label>Número de parcelas<input id="g-n" type="number" min="1" max="72" value="1" required></label>
-    <label>Pago com<select id="g-cartao"><option value="">Sem cartão (pix, débito, dinheiro)</option>${db.cartoes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select></label>
+    <label>Pago com<select id="g-cartao">
+      ${db.cartoes.length ? `<optgroup label="Cartão de crédito">${db.cartoes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</optgroup>` : ''}
+      <optgroup label="Outras formas">${Object.entries(FORMAS).map(([k, n]) => `<option value="__${k}">${n}</option>`).join('')}</optgroup>
+    </select></label>
     <label>Categoria<select id="g-cat">${CATEGORIAS.map(c => `<option>${c}</option>`).join('')}</select></label>
     <label>Data da compra<input id="g-data" type="date" value="${fmtISO(hoje())}" required></label>
-    <label>Fatura da 1ª parcela (opcional)<input id="g-ref" type="month"></label>
+    <label>Fatura ou mês da 1ª parcela (opcional)<input id="g-ref" type="month"></label>
     <label>Parcelas já pagas<input id="g-pagas" type="number" min="0" max="72" value="0"></label>
-    <div class="row" style="grid-column:1/-1"><button class="btn">Adicionar lançamento</button><button type="button" class="btn ghost" onclick="novoGasto=false;render()">Cancelar</button></div>
-  </form></div>`;
+    <div class="row" style="grid-column:1/-1"><button class="btn">Adicionar gasto</button>${cancelar}</div>
+  </form>`;
+  return `<div class="panel" style="margin-bottom:18px"><div class="form-head"><h2>Novo lançamento</h2>${seg}</div>${corpo}</div>`;
 }
 function vLanc(){
   const q = filtro.q.trim().toLowerCase();
-  const lista = db.gastos.filter(g => {
-    if(q && !(g.descricao.toLowerCase().includes(q) || g.categoria.toLowerCase().includes(q))) return false;
+  const casa = (d, c) => !q || d.toLowerCase().includes(q) || c.toLowerCase().includes(q);
+  const gastos = filtro.tipo === 'in' ? [] : db.gastos.filter(g => {
+    if(!casa(g.descricao, g.categoria)) return false;
     if(filtro.cartao && (filtro.cartao === '__sc' ? g.cartaoId : g.cartaoId !== filtro.cartao)) return false;
     const pend = g.parcelas.some(p => p.status !== 'paga');
     const atr = g.parcelas.some(p => p.status !== 'paga' && parseISO(p.venc) < hoje());
@@ -781,22 +837,50 @@ function vLanc(){
     if(filtro.status === 'atraso' && !atr) return false;
     return true;
   });
-  const totRest = sum(lista.flatMap(g => g.parcelas).filter(p => p.status !== 'paga'), p => p.valor);
+  const entradas = (filtro.tipo === 'out' || filtro.cartao) ? [] : db.entradas.filter(e => {
+    if(!casa(e.descricao, e.categoria)) return false;
+    const pend = e.parcelas.some(p => p.status !== 'recebida');
+    const atr = e.parcelas.some(p => p.status !== 'recebida' && parseISO(p.data) < hoje());
+    if(filtro.status === 'ativos' && !pend) return false;
+    if(filtro.status === 'quitados' && pend) return false;
+    if(filtro.status === 'atraso' && !atr) return false;
+    return true;
+  });
+  const dataG = g => g.dataCompra || g.parcelas[0].venc, dataE = e => e.parcelas[0].data;
+  const lista = [...gastos.map(g => ({ d:dataG(g), h:itemGasto(g) })), ...entradas.map(e => ({ d:dataE(e), h:itemEntrada(e) }))]
+    .sort((a, b) => b.d.localeCompare(a.d));
+  const totRest = sum(gastos.flatMap(g => g.parcelas).filter(p => p.status !== 'paga'), p => p.valor);
+  const totReceber = sum(entradas.flatMap(e => e.parcelas).filter(p => p.status !== 'recebida'), p => p.valor);
+
+  const cur = MES_ATUAL();
+  const extras = entradasDoMes(cur), entra = db.renda + extras, sai = sum(compromissos(cur), x => x.valor), saldo = entra - sai;
+  const resumo = `<div class="resumo">
+    <div class="stat"><span class="k">Entra em ${mesSo(cur).toLowerCase()}</span><span class="v num ok"><span class="money">${brl(entra)}</span></span><span class="mute small">${extras > 0 ? `Renda ${M(db.renda)} + extras ${M(extras)}` : 'Renda fixa'}</span></div>
+    <div class="stat"><span class="k">Sai em ${mesSo(cur).toLowerCase()}</span><span class="v num"><span class="money">${brl(sai)}</span></span><span class="mute small">Parcelas e contas do mês</span></div>
+    <div class="stat"><span class="k">Saldo previsto</span><span class="v num ${saldo < 0 ? 'bad' : 'ok'}"><span class="money">${brl(saldo)}</span></span><span class="mute small">${saldo < 0 ? 'Faltando no mês' : 'Sobrando no mês'}</span></div>
+  </div>`;
+  const resumoLista = [gastos.length ? `faltando pagar ${M(totRest)}` : '', entradas.length && totReceber > 0 ? `a receber ${M(totReceber)}` : ''].filter(Boolean).join(' e ');
   return `
-  <div class="sec-h" style="margin-top:0"><h2>Lançamentos</h2>${novoGasto ? '' : '<button class="btn" onclick="novoGasto=true;render()">Novo lançamento</button>'}</div>
+  <div class="sec-h" style="margin-top:0"><h2>Lançamentos</h2>${novoGasto ? '' : `<div class="row"><button class="btn ghost" onclick="abrirNovo('in')">+ Recebimento</button><button class="btn" onclick="abrirNovo('out')">+ Gasto</button></div>`}</div>
   ${novoGasto ? formNovoGasto() : ''}
+  ${resumo}
+  <div class="row between" style="margin-bottom:12px">
+    <div class="seg" aria-label="Tipo">
+      ${[['', 'Tudo'], ['out', 'Gastos'], ['in', 'Recebimentos']].map(([k, n]) => `<button class="${filtro.tipo === k ? 'on' : ''}" onclick="filtro.tipo='${k}';render()">${n}</button>`).join('')}
+    </div>
+  </div>
   <div class="toolbar">
     <input class="search" type="search" placeholder="Buscar por nome ou categoria" value="${esc(filtro.q)}" oninput="filtro.q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{render();const s=document.querySelector('.search');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)" aria-label="Buscar">
-    <select onchange="filtro.cartao=this.value;render()" aria-label="Cartão">
-      <option value="">Todos os cartões</option><option value="__sc" ${filtro.cartao==='__sc'?'selected':''}>Sem cartão</option>
+    <select onchange="filtro.cartao=this.value;render()" aria-label="Forma de pagamento">
+      <option value="">Todas as formas</option><option value="__sc" ${filtro.cartao==='__sc'?'selected':''}>Fora do cartão</option>
       ${db.cartoes.map(c => `<option value="${c.id}" ${filtro.cartao===c.id?'selected':''}>${esc(c.nome)}</option>`).join('')}
     </select>
     <select onchange="filtro.status=this.value;render()" aria-label="Situação">
-      ${[['ativos','Em andamento'],['atraso','Com atraso'],['quitados','Quitados'],['','Todos']].map(([k,n]) => `<option value="${k}" ${filtro.status===k?'selected':''}>${n}</option>`).join('')}
+      ${[['ativos','Em andamento'],['atraso','Com atraso'],['quitados','Concluídos'],['','Todos']].map(([k,n]) => `<option value="${k}" ${filtro.status===k?'selected':''}>${n}</option>`).join('')}
     </select>
   </div>
-  ${lista.length ? `<p class="mute small" style="margin:0 0 12px">${lista.length} lançamento${lista.length > 1 ? 's' : ''}, faltando pagar ${M(totRest)}</p>` : ''}
-  ${lista.map(itemGasto).join('') || `<div class="panel empty">Nenhum lançamento com esses filtros.${db.gastos.length ? '' : '<br><button class="btn" onclick="novoGasto=true;render()">Adicionar o primeiro</button>'}</div>`}`;
+  ${lista.length ? `<p class="mute small" style="margin:0 0 12px">${lista.length} lançamento${lista.length > 1 ? 's' : ''}${resumoLista ? ', ' + resumoLista : ''}</p>` : ''}
+  ${lista.map(x => x.h).join('') || `<div class="panel empty">Nenhum lançamento com esses filtros.${db.gastos.length || db.entradas.length ? '' : '<br><button class="btn" onclick="abrirNovo(\'out\')">Adicionar o primeiro</button>'}</div>`}`;
 }
 function itemGasto(g){
   const c = g.cartaoId ? cardOf(g.cartaoId) : null;
@@ -814,10 +898,10 @@ function itemGasto(g){
     <div class="row" style="margin-top:14px"><button class="btn ghost sm" onclick="editGasto='${g.id}';render()">Editar</button><button class="btn danger sm" onclick="delGasto('${g.id}')">Excluir</button></div>`;
   return `<details class="gasto" ${abertos.has(g.id) ? 'open' : ''} ontoggle="this.open?abertos.add('${g.id}'):abertos.delete('${g.id}')">
     <summary>
-      <span class="sw" style="background:${c ? c.cor : '#8F99B3'};width:12px;height:12px"></span>
+      <span class="tipo out" aria-label="Gasto">−</span>
       <div class="grow" style="flex:1 1 0;min-width:0">
         <div style="font-weight:600">${esc(g.descricao)} ${atr ? PILL.atrasada : ''}</div>
-        <div class="mute small">${c ? esc(c.nome) : 'Sem cartão'}, ${esc(g.categoria)}${g.n > 1 ? `, termina em ${mesCurto(fim)}/${fim.slice(2,4)}` : ''}</div>
+        <div class="mute small">${c ? `<span class="sw" style="background:${c.cor}"></span> ${esc(c.nome)}` : esc(FORMAS[g.forma] || 'Fora do cartão')}, ${esc(g.categoria)}${g.n > 1 ? `, termina em ${mesCurto(fim)}/${fim.slice(2,4)}` : ''}</div>
         ${g.n > 1 ? `<div class="prog"><i style="width:${pagas/g.n*100}%"></i></div>` : ''}
       </div>
       <div class="r" style="text-align:right">
@@ -843,15 +927,101 @@ function formEditGasto(g){
 function addGasto(e){
   e.preventDefault();
   const valor = num(val('g-valor')), n = Math.max(1, Math.min(72, parseInt(val('g-n')) || 1));
-  const cartao = val('g-cartao') ? cardOf(val('g-cartao')) : null;
+  const pagoCom = val('g-cartao');
+  const cartao = pagoCom && !pagoCom.startsWith('__') ? cardOf(pagoCom) : null;
+  const forma = cartao ? 'cartao' : (pagoCom || '__pix').slice(2);
   if(valor <= 0){ toast('Informe um valor maior que zero'); return; }
   const vp = val('g-tipo') === 'parcela' ? valor : null;
   const total = vp ? round2(vp * n) : valor;
   const parcelas = criarParcelas(total, n, val('g-data'), cartao, val('g-ref') || null, vp);
   const k = Math.max(0, Math.min(n, parseInt(val('g-pagas')) || 0));
   for(let i = 0; i < k; i++) parcelas[i].status = 'paga';
-  db.gastos.push({ id:uid(), descricao:val('g-desc').trim(), valorTotal:total, n, dataCompra:val('g-data'), cartaoId:cartao ? cartao.id : null, categoria:val('g-cat'), parcelas });
-  novoGasto = false; save(); render(); toast('Lançamento adicionado');
+  db.gastos.push({ id:uid(), descricao:val('g-desc').trim(), valorTotal:total, n, dataCompra:val('g-data'), cartaoId:cartao ? cartao.id : null, forma, categoria:val('g-cat'), parcelas });
+  novoGasto = false; save(); render(); toast('Gasto adicionado');
+}
+
+/* ---------- recebimentos (entradas avulsas) ---------- */
+function addEntrada(e){
+  e.preventDefault();
+  const valor = num(val('e-valor')), n = Math.max(1, Math.min(72, parseInt(val('e-n')) || 1));
+  if(valor <= 0){ toast('Informe um valor maior que zero'); return; }
+  const vp = val('e-tipo') === 'parcela' || n === 1 ? valor : null;
+  const total = vp ? round2(vp * n) : valor;
+  const base = vp || Math.floor(total / n * 100) / 100;
+  const d0 = parseISO(val('e-data')), dia = d0.getDate(), jaRecebi = val('e-st') === 'sim';
+  let ref = mesKey(d0);
+  const parcelas = [];
+  for(let i = 0; i < n; i++){
+    const v = vp ? vp : (i < n - 1 ? base : round2(total - base * (n - 1)));
+    const data = i === 0 ? val('e-data') : vencSemCartao(dia, ref);
+    const recebida = jaRecebi && parseISO(data) <= hoje();
+    parcelas.push({ n:i + 1, valor:v, data, ref, status:recebida ? 'recebida' : 'a_receber', recebidaEm:recebida ? data : null });
+    ref = nextRef(ref);
+  }
+  db.entradas.push({ id:uid(), descricao:val('e-desc').trim(), valorTotal:total, n, categoria:val('e-cat'), parcelas });
+  novoGasto = false; save(); render(); toast('Recebimento adicionado');
+}
+function itemEntrada(e){
+  const recebidas = e.parcelas.filter(p => p.status === 'recebida').length;
+  const falta = sum(e.parcelas.filter(p => p.status !== 'recebida'), p => p.valor);
+  const atr = e.parcelas.some(p => p.status !== 'recebida' && parseISO(p.data) < hoje());
+  const vp = e.parcelas[0].valor, fim = e.parcelas[e.parcelas.length - 1].ref;
+  const corpo = editEntrada === e.id ? formEditEntrada(e) : `
+    <table><thead><tr><th>Vez</th><th>Mês</th><th>Data</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody>
+    ${e.parcelas.map((p, i) => `<tr><td>${p.n} de ${e.n}</td><td>${mesCurto(p.ref)}/${p.ref.slice(2,4)}</td><td>${fmtBR(p.data)}</td><td style="text-align:right" class="val-in">${M(p.valor)}</td>
+      <td style="text-align:right;width:44px"><button class="check ${p.status === 'recebida' ? 'on' : ''}" onclick="toggleRecebida('${e.id}',${i})" aria-label="Marcar ${p.n} como recebida" title="${p.status === 'recebida' ? 'Recebida' : 'A receber'}">${I.check}</button></td></tr>`).join('')}
+    </tbody></table>
+    <div class="row" style="margin-top:14px"><button class="btn ghost sm" onclick="editEntrada='${e.id}';render()">Editar</button><button class="btn danger sm" onclick="delEntrada('${e.id}')">Excluir</button></div>`;
+  return `<details class="gasto" ${abertos.has(e.id) ? 'open' : ''} ontoggle="this.open?abertos.add('${e.id}'):abertos.delete('${e.id}')">
+    <summary>
+      <span class="tipo in" aria-label="Recebimento">+</span>
+      <div class="grow" style="flex:1 1 0;min-width:0">
+        <div style="font-weight:600">${esc(e.descricao)} ${atr ? '<span class="pill bad">Atrasado</span>' : ''}</div>
+        <div class="mute small">Recebimento, ${esc(e.categoria)}${e.n > 1 ? `, até ${mesCurto(fim)}/${fim.slice(2,4)}` : `, ${fmtBR(e.parcelas[0].data)}`}</div>
+        ${e.n > 1 ? `<div class="prog"><i style="width:${recebidas / e.n * 100}%"></i></div>` : ''}
+      </div>
+      <div class="r" style="text-align:right">
+        <div class="num val-in" style="font-weight:600">+ ${M(vp)}${e.n > 1 ? '<span class="mute small"> /mês</span>' : ''}</div>
+        <div class="mute small">${e.n > 1 ? `${recebidas} de ${e.n} recebidas` : recebidas ? 'Recebido' : 'A receber'}${falta > 0 && e.n > 1 ? `, faltam ${M(falta)}` : ''}</div>
+      </div>
+      <span class="chev">${I.chev}</span>
+    </summary>
+    <div class="body">${corpo}</div>
+  </details>`;
+}
+function formEditEntrada(e){
+  return `<form class="form" style="padding-top:10px" onsubmit="salvarEntrada(event,'${e.id}')">
+    <label>Descrição<input id="ee-desc" value="${esc(e.descricao)}" required></label>
+    <label>Categoria<select id="ee-cat">${CAT_ENTRADA.map(c => `<option ${c === e.categoria ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+    <label>Valor de cada vez<input id="ee-vp" type="number" step="0.01" min="0.01" value="${e.parcelas[0].valor}"></label>
+    <label>Data da 1ª vez<input id="ee-data" type="date" value="${e.parcelas[0].data}"></label>
+    <div class="row" style="grid-column:1/-1"><button class="btn">Salvar alterações</button><button type="button" class="btn ghost" onclick="editEntrada=null;render()">Cancelar</button></div>
+  </form>`;
+}
+function salvarEntrada(ev, id){
+  ev.preventDefault();
+  const e = db.entradas.find(x => x.id === id);
+  e.descricao = val('ee-desc').trim() || e.descricao;
+  e.categoria = val('ee-cat');
+  const vp = num(val('ee-vp'));
+  if(vp > 0 && Math.abs(vp - e.parcelas[0].valor) > 0.001){ e.parcelas.forEach(p => p.valor = vp); e.valorTotal = round2(vp * e.n); }
+  const d = val('ee-data');
+  if(d && d !== e.parcelas[0].data){
+    const d0 = parseISO(d); let ref = mesKey(d0);
+    e.parcelas.forEach((p, i) => { p.ref = ref; p.data = i === 0 ? d : vencSemCartao(d0.getDate(), ref); ref = nextRef(ref); });
+  }
+  editEntrada = null; save(); render(); toast('Recebimento atualizado');
+}
+function toggleRecebida(eid, i){
+  const p = db.entradas.find(x => x.id === eid).parcelas[i];
+  if(p.status === 'recebida'){ p.status = 'a_receber'; p.recebidaEm = null; toast('Marcado como a receber'); }
+  else { p.status = 'recebida'; p.recebidaEm = fmtISO(hoje()); toast('Marcado como recebido'); }
+  save(); render();
+}
+function delEntrada(id){
+  const e = db.entradas.find(x => x.id === id);
+  if(!confirm(`Excluir o recebimento ${e.descricao}?`)) return;
+  db.entradas = db.entradas.filter(x => x.id !== id); save(); render(); toast('Recebimento excluído');
 }
 function salvarGasto(e, id){
   e.preventDefault();
@@ -1016,7 +1186,7 @@ function vPlanejar(){
   <section class="sec">
     <div class="sec-h"><h2>Seus dados</h2></div>
     <div class="panel">
-      <p class="mute" style="margin:0 0 14px">Tudo fica guardado só neste aparelho, sem internet. Exporte um backup de vez em quando e guarde o arquivo; ele também serve para passar os dados para outro celular ou computador.</p>
+      <p class="mute" style="margin:0 0 14px">Seus dados ficam salvos na sua conta, na nuvem, e aparecem em qualquer celular ou computador onde você entrar. Se quiser uma cópia extra, exporte um backup e guarde o arquivo.</p>
       <div class="row"><button class="btn" onclick="exportar()">Exportar backup</button><button class="btn ghost" onclick="document.getElementById('importFile').click()">Importar backup</button></div>
     </div>
   </section>`;
@@ -1107,7 +1277,7 @@ function importar(ev){
       const d = JSON.parse(r.result);
       if(d.v !== 1 || !Array.isArray(d.cartoes) || !Array.isArray(d.gastos)) throw 0;
       if(!confirm('Substituir os dados atuais pelos do backup?')) return;
-      db = d; db.fixas = db.fixas || []; db.renda = db.renda || 0; db.seeds = db.seeds || ['lote-2026-11'];
+      db = normalizar(d);
       save(); render(); toast('Backup importado');
     }catch(err){ toast('Arquivo de backup inválido'); }
     ev.target.value = '';
