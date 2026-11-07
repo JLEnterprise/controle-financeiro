@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0E1424">
 <meta name="color-scheme" content="dark">
-<title>JL Finanças IA</title>
+<title>JL Finance</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F1E3C4'/%3E%3Cstop offset='.5' stop-color='%23D2B47C'/%3E%3Cstop offset='1' stop-color='%239E7C45'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='1' y='1' width='38' height='38' rx='11' fill='url(%23g)'/%3E%3Cg fill='none' stroke='%230E1424' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 10v13.5a4.5 4.5 0 0 1-4.5 4.5H10'/%3E%3Cpath d='M22 10v18h9'/%3E%3C/g%3E%3Cg fill='none' stroke='%230E1424' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M25.5 23.5l5-5'/%3E%3Cpath d='M27.5 18.5h3v3'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root{
   --ink:#0E1424; --surface:#151D31; --surface2:#1C2640; --line:#28334F;
@@ -30,7 +31,12 @@ header{position:sticky;top:0;z-index:20;background:rgba(14,20,36,.82);backdrop-f
 .top{max-width:1120px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:19px;white-space:nowrap}
 .brand svg{flex:none}
-.brand-ia{font-family:var(--sans);font-weight:700;font-size:.62em;letter-spacing:.06em;color:var(--ink);background:var(--gold);border-radius:6px;padding:2px 6px;margin-left:2px;vertical-align:.25em}
+.logo{flex:none;filter:drop-shadow(0 4px 14px rgba(210,180,124,.28))}
+.wordmark{display:flex;align-items:baseline;gap:7px;line-height:1}
+.wm-jl{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.02em;
+  background:linear-gradient(135deg,#F1E3C4,#D2B47C 55%,#B08D55);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wm-fin{font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:var(--text2)}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(216,195,160,.55),transparent)}
 nav.tabs{display:flex;gap:2px;margin-left:auto}
 nav.tabs button{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--mute);font:500 14px var(--sans);padding:9px 14px;border-radius:10px;cursor:pointer}
 nav.tabs button:hover{color:var(--text)}
@@ -219,7 +225,10 @@ tr:last-child td{border-bottom:0}
 body.sem-sessao #auth{display:grid}
 body.sem-sessao header,body.sem-sessao main{display:none}
 .auth-box{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px 26px}
-.auth-brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:21px;margin-bottom:6px}
+.auth-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:4px 0 8px}
+.auth-brand .wm-jl{font-size:30px}
+.auth-brand .wm-fin{font-size:14px}
+.auth-box{box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);border-color:rgba(216,195,160,.18)}
 .auth-box h1{font-family:var(--serif);font-weight:500;font-size:26px;margin:18px 0 6px}
 .auth-box p.sub{color:var(--mute);margin:0 0 20px;font-size:14px}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface2);border-radius:12px;padding:4px;margin-top:18px}
@@ -243,12 +252,35 @@ body.carregando #carregando{display:grid}
 </style>
 </head>
 <body class="carregando">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="jl-ouro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1E3C4"/><stop offset=".5" stop-color="#D2B47C"/><stop offset="1" stop-color="#9E7C45"/>
+    </linearGradient>
+    <linearGradient id="jl-brilho" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <symbol id="logo-jl" viewBox="0 0 40 40">
+      <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#jl-ouro)"/>
+      <rect x="1" y="1" width="38" height="19" rx="11" fill="url(#jl-brilho)"/>
+      <rect x="1.5" y="1.5" width="37" height="37" rx="10.5" fill="none" stroke="#fff" stroke-opacity=".35"/>
+      <g fill="none" stroke="#0E1424" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 10v13.5a4.5 4.5 0 0 1-4.5 4.5H10"/>
+        <path d="M22 10v18h9"/>
+      </g>
+      <g fill="none" stroke="#0E1424" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M25.5 23.5l5-5"/>
+        <path d="M27.5 18.5h3v3"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
 <div id="carregando">Carregando…</div>
 <div id="auth">
   <div class="auth-box">
     <div class="auth-brand">
-      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="5" width="24" height="16" rx="4" fill="none" stroke="#D8C3A0" stroke-width="1.6"/><rect x="5" y="10" width="6" height="5" rx="1.2" fill="#D8C3A0"/></svg>
-      <span>JL Finanças <b class="brand-ia">IA</b></span>
+      <svg class="logo" width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><use href="#logo-jl"/></svg>
+      <div class="wordmark"><span class="wm-jl">JL</span><span class="wm-fin">Finance</span></div>
     </div>
     <div id="auth-corpo"></div>
   </div>
@@ -256,8 +288,8 @@ body.carregando #carregando{display:grid}
 <header>
   <div class="top">
     <div class="brand brand-wrap">
-      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="5" width="24" height="16" rx="4" fill="none" stroke="#D8C3A0" stroke-width="1.6"/><rect x="5" y="10" width="6" height="5" rx="1.2" fill="#D8C3A0"/></svg>
-      <span>JL Finanças <b class="brand-ia">IA</b></span>
+      <svg class="logo" width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><use href="#logo-jl"/></svg>
+      <div class="wordmark"><span class="wm-jl">JL</span><span class="wm-fin">Finance</span></div>
     </div>
     <nav class="tabs" id="tabs"></nav>
     <button class="iconbtn" id="eye" onclick="togglePrivado()" aria-label="Ocultar valores" title="Ocultar valores"></button>
