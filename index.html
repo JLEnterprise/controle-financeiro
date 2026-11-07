@@ -807,12 +807,13 @@ function formNovoGasto(){
     <p class="mute small" style="grid-column:1/-1;margin:0">Use para valores fora da sua renda fixa: um extra, uma causa ganha, uma pensão. Eles somam no quanto você pode gastar no mês em que caem.</p>
     <div class="row" style="grid-column:1/-1"><button class="btn">Adicionar recebimento</button>${cancelar}</div>
   </form>` : `
-  <form class="form" onsubmit="addGasto(event)">
+  <form class="form" onsubmit="addGasto(event)" oninput="prevGasto()" onchange="prevGasto()">
     <label>Descrição<input id="g-desc" required placeholder="Ex.: Notebook"></label>
     <label>Valor (R$)<input id="g-valor" type="number" step="0.01" min="0.01" required></label>
     <label>Parcelas<select id="g-n">${optsParcelas(1)}</select></label>
-    <label>Esse valor é<select id="g-tipo"><option value="parcela">De cada parcela</option><option value="total">Total da compra</option></select></label>
-    <label>Pago com<select id="g-cartao">
+    <label>Esse valor é<select id="g-tipo"><option value="parcela">De cada parcela</option><option value="total">Total (compra ou valor emprestado)</option></select></label>
+    <label>Juros ao mês (%)<input id="g-juros" type="number" step="0.01" min="0" max="30" value="0" placeholder="Ex.: 2,99"></label>
+    <label>Pago com<select id="g-cartao" onchange="if(this.value==='__financiamento'){document.getElementById('g-tipo').value='total'}">
       ${db.cartoes.length ? `<optgroup label="Cartão de crédito">${db.cartoes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</optgroup>` : ''}
       <optgroup label="Outras formas">${Object.entries(FORMAS).map(([k, n]) => `<option value="__${k}">${n}</option>`).join('')}</optgroup>
     </select></label>
@@ -820,6 +821,7 @@ function formNovoGasto(){
     <label>Data da compra<input id="g-data" type="date" value="${fmtISO(hoje())}" required></label>
     <label>Fatura ou mês da 1ª parcela (opcional)<input id="g-ref" type="month"></label>
     <label>Parcelas já pagas<input id="g-pagas" type="number" min="0" max="72" value="0"></label>
+    <div id="g-prev" class="res" style="grid-column:1/-1;margin:0;display:none"></div>
     <div class="row" style="grid-column:1/-1"><button class="btn">Adicionar gasto</button>${cancelar}</div>
   </form>`;
   return `<div class="panel" style="margin-bottom:18px"><div class="form-head"><h2>Novo lançamento</h2>${seg}</div>${corpo}</div>`;
@@ -889,7 +891,8 @@ function itemGasto(g){
   const atr = g.parcelas.some(p => p.status !== 'paga' && parseISO(p.venc) < hoje());
   const vp = g.parcelas[0].valor;
   const fim = g.parcelas[g.parcelas.length - 1].ref;
-  const corpo = editGasto === g.id ? formEditGasto(g) : `
+  const infoJuros = g.juros > 0 ? `<div class="res" style="margin:10px 0 6px">Valor emprestado ${M(g.valorBase)}, em ${g.n}x de ${M(vp)} com juros de ${Number(g.juros).toLocaleString('pt-BR')}% ao mês.<br>Total a pagar ${M(g.valorTotal)}, sendo <span class="badt">${M(g.valorTotal - g.valorBase)} de juros</span>.</div>` : '';
+  const corpo = editGasto === g.id ? formEditGasto(g) : `${infoJuros}
     <table><thead><tr><th>Parcela</th><th>Fatura</th><th>Vence</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody>
     ${g.parcelas.map((p, i) => { const s = p.status === 'paga' ? 'paga' : parseISO(p.venc) < hoje() ? 'atrasada' : 'aberta';
       return `<tr><td>${p.n} de ${g.n}</td><td>${mesCurto(p.ref)}/${p.ref.slice(2,4)}</td><td>${fmtBR(p.venc)}</td><td style="text-align:right">${M(p.valor)}</td>
@@ -901,7 +904,7 @@ function itemGasto(g){
       <span class="tipo out" aria-label="Gasto">−</span>
       <div class="grow" style="flex:1 1 0;min-width:0">
         <div style="font-weight:600">${esc(g.descricao)} ${atr ? PILL.atrasada : ''}</div>
-        <div class="mute small">${c ? `<span class="sw" style="background:${c.cor}"></span> ${esc(c.nome)}` : esc(FORMAS[g.forma] || 'Fora do cartão')}, ${esc(g.categoria)}${g.n > 1 ? `, termina em ${mesCurto(fim)}/${fim.slice(2,4)}` : ''}</div>
+        <div class="mute small">${c ? `<span class="sw" style="background:${c.cor}"></span> ${esc(c.nome)}` : esc(FORMAS[g.forma] || 'Fora do cartão')}, ${esc(g.categoria)}${g.juros > 0 ? `, juros ${Number(g.juros).toLocaleString('pt-BR')}% a.m.` : ''}${g.n > 1 ? `, termina em ${mesCurto(fim)}/${fim.slice(2,4)}` : ''}</div>
         ${g.n > 1 ? `<div class="prog"><i style="width:${pagas/g.n*100}%"></i></div>` : ''}
       </div>
       <div class="r" style="text-align:right">
@@ -931,13 +934,45 @@ function addGasto(e){
   const cartao = pagoCom && !pagoCom.startsWith('__') ? cardOf(pagoCom) : null;
   const forma = cartao ? 'cartao' : (pagoCom || '__pix').slice(2);
   if(valor <= 0){ toast('Informe um valor maior que zero'); return; }
-  const vp = val('g-tipo') === 'parcela' ? valor : null;
-  const total = vp ? round2(vp * n) : valor;
+  const c = contaJuros(valor, n, val('g-tipo'), num(val('g-juros')));
+  const vp = c.vp, total = c.total;
   const parcelas = criarParcelas(total, n, val('g-data'), cartao, val('g-ref') || null, vp);
   const k = Math.max(0, Math.min(n, parseInt(val('g-pagas')) || 0));
   for(let i = 0; i < k; i++) parcelas[i].status = 'paga';
-  db.gastos.push({ id:uid(), descricao:val('g-desc').trim(), valorTotal:total, n, dataCompra:val('g-data'), cartaoId:cartao ? cartao.id : null, forma, categoria:val('g-cat'), parcelas });
+  const extra = c.juros > 0 ? { juros:c.juros, valorBase:c.principal } : {};
+  db.gastos.push({ id:uid(), descricao:val('g-desc').trim(), valorTotal:total, n, dataCompra:val('g-data'), cartaoId:cartao ? cartao.id : null, forma, categoria:val('g-cat'), ...extra, parcelas });
   novoGasto = false; save(); render(); toast('Gasto adicionado');
+}
+
+/* Juros compostos, tabela Price (parcelas iguais), como em empréstimos e financiamentos.
+   tipo 'total': valor = quanto foi emprestado/comprado; calcula a parcela com juros.
+   tipo 'parcela': valor = parcela já com juros; calcula quanto foi emprestado de fato. */
+function contaJuros(valor, n, tipo, jurosPct){
+  const j = Math.max(0, jurosPct) / 100;
+  if(tipo === 'parcela'){
+    const total = round2(valor * n);
+    const principal = j > 0 ? round2(valor * (1 - Math.pow(1 + j, -n)) / j) : total;
+    return { vp:valor, total, principal, juros:jurosPct, custo:round2(total - principal) };
+  }
+  if(j > 0 && n > 0){
+    const vp = round2(valor * j / (1 - Math.pow(1 + j, -n)));
+    return { vp, total:round2(vp * n), principal:valor, juros:jurosPct, custo:round2(vp * n - valor) };
+  }
+  return { vp:null, total:valor, principal:valor, juros:0, custo:0 };
+}
+function prevGasto(){
+  const box = document.getElementById('g-prev'); if(!box) return;
+  const valor = num(val('g-valor')), n = parseInt(val('g-n')) || 1, jp = num(val('g-juros'));
+  if(!(valor > 0)){ box.style.display = 'none'; return; }
+  const c = contaJuros(valor, n, val('g-tipo'), jp);
+  const parcela = c.vp || round2(c.total / n);
+  const anual = jp > 0 ? (Math.pow(1 + jp / 100, 12) - 1) * 100 : 0;
+  box.style.display = 'block';
+  box.innerHTML = n === 1 && !(jp > 0)
+    ? `À vista: ${M(c.total)}`
+    : `<b>${n}x de ${M(parcela)}</b>, total pago ${M(c.total)}.` +
+      (jp > 0 ? `<br>${val('g-tipo') === 'parcela' ? 'Valor emprestado de fato' : 'Valor emprestado'}: ${M(c.principal)}. Juros de ${jp.toLocaleString('pt-BR')}% ao mês (${anual.toFixed(1).replace('.', ',')}% ao ano): <span class="badt">${M(c.custo)} a mais</span>.`
+               : `<br><span class="mute small">Sem juros. Se for empréstimo ou parcelado com juros, preencha "Juros ao mês".</span>`);
 }
 
 /* ---------- recebimentos (entradas avulsas) ---------- */
