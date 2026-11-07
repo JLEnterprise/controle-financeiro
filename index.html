@@ -333,6 +333,42 @@ const SUPABASE_KEY = 'sb_publishable_4YJZGfkPSAOeemW0Im4wGA_kxO0KKx7'; // chave 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let usuario = null;
 
+/* ================= taxas de referência (gerado por taxas/atualizar-taxas.ps1) ================= */
+/*TAXAS-INICIO*/
+/* Referências fixas do JL Finance — conferidas em 07/11/2026.
+   As taxas de crédito por banco (Banco Central) ficam em TAXAS_BCB, gerado por atualizar-taxas.ps1. */
+const TAXAS_REF = {
+  atualizadoEm: '07/11/2026',
+  indices: {
+    selicMeta: { valor: 13.75, unidade: '% ao ano', data: 'vigente em 07/11/2026', fonte: 'Banco Central, SGS série 432' },
+    cdi: { valor: 13.65, unidade: '% ao ano (base 252 dias úteis)', data: '05/11/2026', fonte: 'Banco Central, SGS série 4389' },
+    cdiDia: { valor: 0.050788, unidade: '% ao dia útil', data: '05/11/2026', fonte: 'Banco Central, SGS série 12' },
+    poupanca: { valor: 0.6703, unidade: '% ao mês (0,5% + TR, porque a Selic está acima de 8,5%)', data: '05/11/2026', fonte: 'Banco Central, SGS série 195' },
+    tr: { valor: 0.1695, unidade: '% ao mês', data: '05/11/2026', fonte: 'Banco Central, SGS série 226' },
+    ipca12m: { valor: 4.58, unidade: '% em 12 meses', data: 'setembro/2026', fonte: 'Banco Central, SGS série 13522' }
+  },
+  // Imposto de renda da renda fixa (CDB, RDB, Tesouro, debêntures comuns): tabela regressiva pelo prazo em dias corridos.
+  // LCI, LCA e poupança são isentas para pessoa física. IOF só nos primeiros 29 dias.
+  ir: [[180, 22.5], [360, 20], [720, 17.5], [Infinity, 15]],
+  // Taxas de recebimento (MDR) publicadas no site oficial da InfinitePay (infinitepay.io/taxas), lidas em 07/11/2026.
+  // Percentual descontado do vendedor sobre o valor da venda, já com a antecipação das parcelas incluída.
+  // Lista: [débito, crédito à vista, 2x, 3x, ..., 12x]; débito null = não aceita.
+  maquininha: [
+    { id:'ip-1d-20',  nome:'InfinitePay maquininha ou InfiniteTap, 1 dia útil, até R$ 20 mil/mês (Visa/Master)', t:[1.37,3.15,5.39,6.12,6.85,7.57,8.28,8.99,9.69,10.38,11.06,11.74,12.40] },
+    { id:'ip-1d-20e', nome:'InfinitePay maquininha ou InfiniteTap, 1 dia útil, até R$ 20 mil/mês (Elo/Amex)', t:[2.58,4.91,6.47,7.20,7.92,8.63,9.33,10.03,10.72,11.41,12.08,12.75,13.41] },
+    { id:'ip-1d-21',  nome:'InfinitePay maquininha ou InfiniteTap, 1 dia útil, acima de R$ 20 mil/mês (Visa/Master)', t:[0.85,2.89,4.22,4.83,5.44,6.05,6.64,7.24,7.82,8.41,8.98,9.56,10.12] },
+    { id:'ip-1d-41',  nome:'InfinitePay maquininha ou InfiniteTap, 1 dia útil, acima de R$ 40 mil/mês (Visa/Master)', t:[0.79,2.79,4.08,4.65,5.21,5.77,6.32,6.87,7.42,7.96,8.49,9.03,9.56] },
+    { id:'ip-1d-81',  nome:'InfinitePay maquininha ou InfiniteTap, 1 dia útil, acima de R$ 80 mil/mês (Visa/Master)', t:[0.75,2.69,3.94,4.46,4.98,5.49,5.99,6.51,6.99,7.51,7.99,8.49,8.99] },
+    { id:'ip-hora',   nome:'InfinitePay maquininha ou InfiniteTap, recebimento na hora (todas as bandeiras)', t:[2.29,5.49,10.89,11.99,12.59,13.29,13.99,14.99,15.59,16.19,16.89,17.89,18.29] },
+    { id:'ip-link',   nome:'InfinitePay link de pagamento, 1 dia útil (todas as bandeiras)', t:[null,4.20,6.09,7.01,7.91,8.80,9.67,12.59,13.42,14.25,15.06,15.87,16.66] },
+    { id:'ip-link-h', nome:'InfinitePay link de pagamento, recebimento na hora (Visa/Master/Elo)', t:[null,5.49,10.89,11.99,12.59,13.29,13.99,14.99,15.59,16.19,16.89,17.89,18.29] }
+  ],
+  maquininhaFonte: 'infinitepay.io/taxas, infinitepay.io/infinitetap e infinitepay.io/link-de-pagamento, lidos em 07/11/2026. Pix grátis em todos os planos. A página não informa data de vigência.'
+};
+
+const TAXAS_BCB = {"fonte":"Banco Central do Brasil, Taxas de juros por instituiÃ§Ã£o financeira (olinda.bcb.gov.br, taxaJuros v2)","periodo":"16/10/2026 a 22/10/2026","baixadoEm":"2026-11-07","obs":"Taxa mÃ©dia prefixada de cada banco no perÃ­odo, pessoa fÃ­sica. Ã‰ mÃ©dia: o contrato de cada cliente pode ter taxa diferente.","modalidades":{"rotativo":{"nome":"Cartão de crédito - rotativo total","bancos":[["ZEMA CFI S/A",0.05,0.61],["BCO INDUSTRIAL DO BRASIL S.A.",4.38,67.25],["BCO DAYCOVAL S.A",5.15,82.59],["BANCO GENIAL",8.42,163.92],["BCO STELLANTIS S.A.",9.07,183.49],["BCO DA AMAZONIA S.A.",9.58,199.66],["BANCO BTG PACTUAL S.A.",9.97,212.9],["BANCO SICOOB S.A.",10.26,223],["BANCO BARI S.A.",10.46,229.84],["BCO RENDIMENTO S.A.",10.52,232],["BCO XP S.A.",10.63,235.95],["BCO SAFRA S.A.",10.66,237.03],["KREDILIG S.A. - CFI",11.71,277.66],["CAIXA ECONOMICA FEDERAL",11.95,287.52],["ASA SCFI S.A.",11.99,289.02],["BCO DO NORDESTE DO BRASIL S.A.",12.1,293.89],["CARUANA SCFI",12.18,297.38],["BCO AGIBANK S.A.",12.47,309.5],["BCO SOFISA S.A.",12.59,314.91],["BCO DO BRASIL S.A.",12.62,316.34],["BCO BANESTES S.A.",12.95,331.16],["NU FINANCEIRA S.A. CFI",13.22,343.75],["BCO BRADESCO S.A.",13.63,363.34],["DM SCFI",13.77,370.37],["ITAÚ UNIBANCO HOLDING S.A.",14.36,400.39],["SCFI EFÍ S.A.",14.98,433.8],["GOLCRED S/A - CFI",15.14,442.81],["HS FINANCEIRA",15.84,483.71],["BCO MERCANTIL DO BRASIL S.A.",15.87,485.64],["BCO C6 S.A.",16.05,496.48],["BANCO CNH INDUSTRIAL CAPITAL S.A",16.12,501.01],["BANCO INTER",16.13,501.35],["BCO BMG S.A.",16.2,505.84],["FIN. ITAU CBD CFI",16.28,510.89],["BANCO INVESTCRED UNIBANCO S.A.",16.79,544.03],["LUIZACRED S.A. SCFI",16.84,547.42],["BCO SANTANDER (BRASIL) S.A.",17.33,580.37],["BCO BV S.A.",17.53,594.38],["BCO DO ESTADO DO RS S.A.",17.76,610.96],["BCO DO EST. DO PA S.A.",17.89,621.01],["BANCO BRADESCARD",18,628.93],["MERCADO CRÉDITO SCFI S.A.",18.01,629.16],["PORTOSEG S.A. CFI",18.71,683.34],["BANCO DIGIO",18.93,700.57],["BCO CSF S.A.",19.21,724],["PICPAY BANK - BANCO MÚLTIPLO S.A",19.48,746.14],["BCO DO EST. DE SE S.A.",19.49,747.34],["COBUCCIO S.A. SCFI",19.77,771.34],["BANCO PAN",20.05,795.75],["MIDWAY S.A. - SCFI",20.08,798.34],["VIA CERTA FINANCIADORA S.A. - CFI",20.16,806.05],["BCO SENFF S.A.",20.2,809.35],["NEON FINANCEIRA - SCFI S.A.",21.05,889.64],["REALIZE SCFI S.A.",21.07,891.67],["BCO CREFISA S.A.",21.26,910.44],["CALCRED S.A.",21.47,931.56],["BCO AFINZ S.A. - BM",21.73,958.87],["BCO TRIANGULO S.A.",22.05,992.22],["PEFISA S.A. - C.F.I.",24.99,1354.32]]},"parcelado":{"nome":"Cartão de crédito - parcelado","bancos":[["ZEMA CFI S/A",1.13,14.44],["BCO BMG S.A.",2.54,35.08],["BCO MERCANTIL DO BRASIL S.A.",2.89,40.76],["BCO AGIBANK S.A.",2.91,41.1],["BCO DAYCOVAL S.A",3.37,48.81],["BCO ARBI S.A.",4.25,64.76],["BANCO GENIAL",4.65,72.61],["BANCO BARI S.A.",4.93,78.07],["VIA CERTA FINANCIADORA S.A. - CFI",5.28,85.43],["BCO C6 S.A.",5.36,87.09],["HS FINANCEIRA",5.99,101.09],["BRB - BCO DE BRASILIA S.A.",6.25,107.09],["BANCO BTG PACTUAL S.A.",6.26,107.16],["KREDILIG S.A. - CFI",6.73,118.51],["SCFI EFÍ S.A.",6.89,122.35],["BANCO SICOOB S.A.",7.04,126.24],["RP FINANCEIRA",7.09,127.45],["BCO DO NORDESTE DO BRASIL S.A.",7.24,131.34],["BCO XP S.A.",7.28,132.39],["GOLCRED S/A - CFI",7.3,132.93],["PICPAY BANK - BANCO MÚLTIPLO S.A",7.47,137.35],["BCO RENDIMENTO S.A.",7.61,141.04],["BCO DO BRASIL S.A.",7.63,141.59],["BCO DO ESTADO DO RS S.A.",7.76,145.31],["CARUANA SCFI",8.01,152.03],["PORTOSEG S.A. CFI",8.02,152.25],["BCO BRADESCO S.A.",8.39,162.83],["BANCO BRADESCARD",8.52,166.86],["CAIXA ECONOMICA FEDERAL",8.56,167.91],["BCO DO EST. DO PA S.A.",8.95,179.57],["NU FINANCEIRA S.A. CFI",8.99,181.05],["BCO SANTANDER (BRASIL) S.A.",9.14,185.75],["BCO TRIANGULO S.A.",9.28,189.94],["BCO SAFRA S.A.",9.51,197.55],["BCO BANESTES S.A.",9.89,209.99],["NEON FINANCEIRA - SCFI S.A.",9.95,212.28],["ITAÚ UNIBANCO HOLDING S.A.",10.04,215.35],["CLOUDWALK FINANCEIRA S.A. CFI",10.1,217.17],["BCO AFINZ S.A. - BM",10.5,231.24],["BANCO INTER",10.58,234.27],["BCO CREFISA S.A.",10.68,237.95],["BCO BV S.A.",10.81,242.58],["BCO CSF S.A.",11.03,250.96],["DM SCFI",11.91,285.94],["BCO SOFISA S.A.",11.93,286.86],["FIN. ITAU CBD CFI",12.04,291.4],["BANCO INVESTCRED UNIBANCO S.A.",12.32,303.24],["BANCO PAN",12.57,314.15],["LUIZACRED S.A. SCFI",12.66,317.91],["BANCO DIGIO",13.22,343.78],["CALCRED S.A.",13.73,368.4],["MIDWAY S.A. - SCFI",15.4,457.54],["MERCADO CRÉDITO SCFI S.A.",15.46,461.09],["BCO SENFF S.A.",15.91,488.05],["PEFISA S.A. - C.F.I.",15.97,491.88],["REALIZE SCFI S.A.",16.58,529.89],["BCO DO EST. DE SE S.A.",19.49,747.34]]},"cheque":{"nome":"Cheque especial","bancos":[["BANCO PAN",0.63,7.82],["BCO CITIBANK S.A.",2.16,29.21],["OURIBANK S.A.",2.18,29.48],["BCO SUMITOMO MITSUI BRASIL S.A.",2.51,34.6],["BCO RIBEIRAO PRETO S.A.",3.22,46.26],["BANCO ORIGINAL",3.26,46.87],["BCO BV S.A.",4.03,60.63],["BANCO SICOOB S.A.",4.45,68.55],["BANCO ORIGINAL",4.6,71.58],["BCO BMG S.A.",4.76,74.76],["BCO DO NORDESTE DO BRASIL S.A.",5.03,80.25],["BCO PINE S.A.",5.37,87.37],["BCO FIBRA S.A.",5.82,97.11],["BCO BANESTES S.A.",5.88,98.6],["BRB - BCO DE BRASILIA S.A.",5.96,100.37],["BRB - BCO DE BRASILIA S.A.",7.05,126.36],["BCO DO EST. DO PA S.A.",7.22,130.71],["BCO SAFRA S.A.",7.39,135.38],["BCO DO ESTADO DO RS S.A.",7.54,139.26],["BCO DO NORDESTE DO BRASIL S.A.",7.6,140.83],["BCO XP S.A.",7.66,142.35],["BCO MERCANTIL DO BRASIL S.A.",7.75,144.93],["BCO DO EST. DE SE S.A.",7.89,148.72],["BCO BANESTES S.A.",7.92,149.56],["BCO BRADESCO S.A.",8.04,152.84],["ITAÚ UNIBANCO S.A.",8.08,153.99],["BCO DA AMAZONIA S.A.",8.12,155.23],["BCO DO BRASIL S.A.",8.16,156.24],["BCO RENDIMENTO S.A.",8.17,156.72],["CAIXA ECONOMICA FEDERAL",8.21,157.69],["BANCO BTG PACTUAL S.A.",8.22,158.15],["BCO DA AMAZONIA S.A.",8.22,158.02],["BCO DO EST. DE SE S.A.",8.24,158.69],["BANCO INTER",8.26,159.28],["BCO C6 S.A.",8.27,159.59],["BCO SOFISA S.A.",8.27,159.39],["BCO SANTANDER (BRASIL) S.A.",8.27,159.46],["BCO CREFISA S.A.",8.27,159.59],["BCO XP S.A.",8.27,159.6],["BCO MERCANTIL DO BRASIL S.A.",8.28,159.76],["BCO DAYCOVAL S.A",8.38,162.6],["BCO RENDIMENTO S.A.",9.17,186.49],["BCO DAYCOVAL S.A",9.28,190.13],["BCO ABC BRASIL S.A.",10.46,229.81],["BCO DO EST. DO PA S.A.",10.59,234.65],["BCO SAFRA S.A.",11.21,257.8],["BCO BS2 S.A.",13.2,342.56],["BCO SOFISA S.A.",14.1,386.74],["BANCO INTER",14.25,394.38],["BCO DO BRASIL S.A.",14.62,414.03],["BCO C6 S.A.",14.83,425.4],["BANCO BTG PACTUAL S.A.",14.96,432.98],["CAIXA ECONOMICA FEDERAL",15.07,438.69],["BCO DO ESTADO DO RS S.A.",15.23,448.1],["BCO BRADESCO S.A.",16.01,493.94],["ITAÚ UNIBANCO S.A.",16.05,496.83],["BCO SANTANDER (BRASIL) S.A.",16.21,506.76]]},"pessoal":{"nome":"Crédito pessoal não consignado","bancos":[["AL5 S.A. SCFI",0,0],["BCO RNX S.A.",0,0],["DM SCFI",1.06,13.48],["BCO BS2 S.A.",1.58,20.71],["BANCO DIGIO",1.58,20.7],["BCO SAFRA S.A.",1.61,21.12],["BANCO SICOOB S.A.",1.62,21.24],["BCO. J.SAFRA S.A.",1.69,22.26],["BCO DA AMAZONIA S.A.",1.77,23.37],["BANCO INTER",1.8,23.93],["BCO C6 CONSIG",1.8,23.86],["TENTOS S.A. CFI",1.83,24.34],["BANCO ORIGINAL",1.85,24.54],["PARANA BCO S.A.",1.98,26.5],["PLANTAE CFI",2,26.83],["PAN FINAN",2.03,27.33],["SINOSSERRA S/A - SCFI",2.05,27.49],["BCO TOYOTA DO BRASIL S.A.",2.36,32.37],["SANTANDER SCFI S.A.",2.53,34.93],["BCO BRADESCO FINANC. S.A.",2.63,36.58],["BCO C6 S.A.",2.63,36.51],["BCO VOTORANTIM S.A.",2.68,37.38],["BANCO BTG PACTUAL S.A.",2.78,39],["BCO INDUSTRIAL DO BRASIL S.A.",2.8,39.35],["CAIXA ECONOMICA FEDERAL",2.88,40.53],["BCO XP S.A.",3.08,43.92],["BARU SCFI S/A",3.12,44.56],["BCO DO EST. DE SE S.A.",3.39,49.15],["BCO SANTANDER (BRASIL) S.A.",3.41,49.58],["ASA SCFI S.A.",3.5,51.15],["BCO DO BRASIL S.A.",3.5,51.09],["OMNI SA CFI",3.7,54.62],["BCO DO ESTADO DO RS S.A.",3.85,57.3],["ITAÚ UNIBANCO S.A.",4.05,60.94],["BANCOSEGURO S.A.",4.33,66.25],["BCO DO NORDESTE DO BRASIL S.A.",4.43,68.29],["BRB - BCO DE BRASILIA S.A.",4.58,71.19],["FINAMAX S.A. CFI",4.77,74.96],["BCO BANESTES S.A.",4.86,76.7],["BANCO BARI S.A.",5.01,79.77],["PORTOSEG S.A. CFI",5.1,81.68],["BCO BRADESCO S.A.",5.21,83.85],["BCO RENDIMENTO S.A.",5.96,100.31],["BCO AFINZ S.A. - BM",6.23,106.59],["NU FINANCEIRA S.A. CFI",6.34,109.08],["BCO DO EST. DO PA S.A.",6.49,112.59],["KREDILIG S.A. - CFI",7.79,146.13],["BANCO PAN",7.82,146.8],["BCO AGIBANK S.A.",7.94,150.25],["NEON FINANCEIRA - SCFI S.A.",8.22,157.96],["GAZINCRED S.A. SCFI",8.52,166.9],["MERCADO CRÉDITO SCFI S.A.",8.67,171.3],["AGORACRED S/A SCFI",9.25,189.07],["BECKER FINANCEIRA SA - CFI",9.59,200.13],["BCO BMG S.A.",9.61,200.7],["99PAY SCFI",9.63,201.54],["GRAZZIOTIN FINANCEIRA S/A",10.23,221.87],["PICPAY BANK - BANCO MÚLTIPLO S.A",10.36,226.35],["CENTROCRED S.A. CFI",10.43,228.91],["CALCRED S.A.",11.05,251.76],["MIDWAY S.A. - SCFI",11.33,262.54],["LEBES FINANCEIRA S.A. - CFI",11.43,266.54],["PEFISA S.A. - C.F.I.",12.22,299.06],["CLOUDWALK FINANCEIRA S.A. CFI",12.28,301.3],["CREDIARE CFI S.A.",12.3,302.24],["BCO MERCANTIL DO BRASIL S.A.",12.38,305.67],["CREFISA S.A. CFI",12.46,309.23],["ZEMA CFI S/A",12.64,317.03],["BCO SENFF S.A.",12.67,318.57],["BCO ARBI S.A.",13.03,335.01],["HS FINANCEIRA",13.06,336.43],["BANCO SEMEAR",13.24,344.53],["NEGRESCO S.A. - CFI",13.42,353.35],["VIA CERTA FINANCIADORA S.A. - CFI",14.4,402.31],["REALIZE SCFI S.A.",14.71,419.28],["VALOR S/A SCFI",14.89,428.92],["JBCRED S.A. SCFI",15.41,458.31],["FACTA S.A. CFI",15.51,464.34],["COBUCCIO S.A. SCFI",16.69,537.25],["BCO DAYCOVAL S.A",17.89,620.58],["SUMUP SCFI S.A",20.75,861.16]]},"consig_inss":{"nome":"Crédito pessoal consignado INSS","bancos":[["BANCOSEGURO S.A.",1.51,19.71],["BCO PAULISTA S.A.",1.51,19.67],["NU FINANCEIRA S.A. CFI",1.53,19.96],["BCO PINE S.A.",1.55,20.32],["MEUTUDO SCFI",1.58,20.63],["BANCO INBURSA",1.59,20.81],["BCO SAFRA S.A.",1.64,21.56],["BCO AGIBANK S.A.",1.64,21.49],["FINANCEIRA ALFA S.A. - SCFI",1.65,21.69],["BANCO INTER",1.65,21.68],["PICPAY BANK - BANCO MÚLTIPLO S.A",1.66,21.86],["BANCO PAN",1.68,22.08],["BCO DO ESTADO DO RS S.A.",1.7,22.36],["BANCO SICOOB S.A.",1.71,22.57],["BANCO COOPERATIVO SICREDI",1.73,22.87],["BANCO BARI S.A.",1.74,22.96],["BCO DAYCOVAL S.A",1.74,22.95],["ITAÚ UNIBANCO S.A.",1.77,23.4],["BCO DO EST. DE SE S.A.",1.78,23.54],["BCO BANESTES S.A.",1.8,23.85],["BCO BMG S.A.",1.81,24.06],["BCO DO BRASIL S.A.",1.81,23.98],["FACTA S.A. CFI",1.81,23.96],["MIDWAY S.A. - SCFI",1.83,24.37],["BCO SANTANDER (BRASIL) S.A.",1.83,24.37],["CAIXA ECONOMICA FEDERAL",1.83,24.27],["BCO BRADESCO S.A.",1.84,24.42],["BECKER FINANCEIRA SA - CFI",1.84,24.4],["BCO MERCANTIL DO BRASIL S.A.",1.85,24.53],["NOVO BCO CONTINENTAL S.A. - BM",1.86,24.71],["BCO C6 CONSIG",1.87,24.96],["BANCO DIGIO",1.87,24.97],["PARANA BCO S.A.",1.87,24.9],["COBUCCIO S.A. SCFI",1.87,24.96],["GAZINCRED S.A. SCFI",1.88,25.07],["BRB - CFI S/A",1.88,25.02],["BANCO SEMEAR",1.88,24.97],["BCO CSF S.A.",1.89,25.14],["PORTOSEG S.A. CFI",2.11,28.52]]},"consig_privado":{"nome":"Crédito pessoal consignado privado","bancos":[["COBUCCIO S.A. SCFI",1.63,21.36],["BCO DO EST. DE SE S.A.",1.77,23.4],["BCO XP S.A.",1.93,25.8],["BCO DO NORDESTE DO BRASIL S.A.",1.98,26.52],["BCO VOLKSWAGEN S.A",2.04,27.43],["BCO SENFF S.A.",2.17,29.43],["PORTOSEG S.A. CFI",2.23,30.28],["BANCO SICOOB S.A.",2.29,31.18],["BCO BANESTES S.A.",2.48,34.15],["BCO INDUSTRIAL DO BRASIL S.A.",2.51,34.67],["BANCO INBURSA",2.53,34.99],["SANTINVEST S.A. - CFI",2.58,35.69],["BCO SANTANDER (BRASIL) S.A.",2.61,36.22],["BANCO DIGIO",2.63,36.56],["HS FINANCEIRA",2.79,39.07],["SOCINAL S.A. CFI",2.9,40.94],["BCO DO BRASIL S.A.",2.98,42.19],["MERCADO CRÉDITO SCFI S.A.",3.01,42.68],["BCO DO ESTADO DO RS S.A.",3.09,44.12],["CAIXA ECONOMICA FEDERAL",3.09,44.03],["BANCO BTG PACTUAL S.A.",3.1,44.21],["BCO DO EST. DO PA S.A.",3.11,44.37],["BCO SAFRA S.A.",3.12,44.6],["MEUTUDO SCFI",3.12,44.52],["BECKER FINANCEIRA SA - CFI",3.13,44.74],["NOVO BCO CONTINENTAL S.A. - BM",3.28,47.36],["GAZINCRED S.A. SCFI",3.33,48.22],["BCO BMG S.A.",3.35,48.45],["AL5 S.A. SCFI",3.36,48.66],["BCO BRADESCO S.A.",3.4,49.34],["ITAÚ UNIBANCO S.A.",3.42,49.75],["MIDWAY S.A. - SCFI",3.43,49.83],["BANCO INTER",3.48,50.78],["BCO BV S.A.",3.6,52.8],["NU FINANCEIRA S.A. CFI",3.71,54.88],["PAN FINAN",3.78,56.12],["BANCOSEGURO S.A.",3.83,57],["BCO MERCANTIL DO BRASIL S.A.",3.87,57.74],["BCO AGIBANK S.A.",4.07,61.38],["ZEMA CFI S/A",4.09,61.79],["BCO PAULISTA S.A.",4.14,62.69],["LECCA CFI S.A.",4.21,64.04],["PICPAY BANK - BANCO MÚLTIPLO S.A",4.23,64.35],["BANCO PAN",4.25,64.83],["NEON FINANCEIRA - SCFI S.A.",4.28,65.38],["BCO PINE S.A.",4.29,65.45],["BCO ARBI S.A.",4.46,68.83],["BCO C6 CONSIG",4.46,68.77],["FACTA S.A. CFI",4.62,72.03],["VALOR S/A SCFI",4.93,78.24],["BCO DAYCOVAL S.A",4.95,78.52],["RPW S.A. SCFI",5,79.59],["PARANA BCO S.A.",5.06,80.86],["NEGRESCO S.A. - CFI",5.61,92.48]]},"consig_publico":{"nome":"Crédito pessoal consignado público","bancos":[["BANCO COOPERATIVO SICREDI",1.49,19.45],["BANCO INBURSA",1.52,19.8],["BCO SAFRA S.A.",1.56,20.36],["BCO ALFA S.A.",1.58,20.76],["NU FINANCEIRA S.A. CFI",1.59,20.83],["FINANCEIRA ALFA S.A. - SCFI",1.6,20.93],["BCO AGIBANK S.A.",1.62,21.29],["BCO ARBI S.A.",1.62,21.24],["BANCO INTER",1.64,21.49],["CAIXA ECONOMICA FEDERAL",1.65,21.76],["BCO BANESTES S.A.",1.66,21.8],["ITAÚ UNIBANCO S.A.",1.69,22.3],["BRB - CFI S/A",1.71,22.55],["BCO SENFF S.A.",1.72,22.77],["BCO DO ESTADO DO RS S.A.",1.72,22.67],["BANCO SICOOB S.A.",1.73,22.91],["BCO BRADESCO S.A.",1.74,23.04],["BCO SANTANDER (BRASIL) S.A.",1.74,23.03],["PICPAY BANK - BANCO MÚLTIPLO S.A",1.74,22.98],["BCO DO BRASIL S.A.",1.75,23.11],["BCO DO NORDESTE DO BRASIL S.A.",1.75,23.11],["FACTA S.A. CFI",1.76,23.28],["BCO DO EST. DO PA S.A.",1.79,23.72],["MIDWAY S.A. - SCFI",1.81,23.95],["BCO C6 CONSIG",1.83,24.36],["BRB - BCO DE BRASILIA S.A.",1.84,24.52],["BANCO DIGIO",1.85,24.53],["PARANA BCO S.A.",1.88,25.02],["BCO BMG S.A.",1.91,25.55],["BANCO BARI S.A.",1.91,25.44],["BANCO PAN",1.91,25.41],["BCO DO EST. DE SE S.A.",1.98,26.49],["SANTINVEST S.A. - CFI",2.01,26.91],["COBUCCIO S.A. SCFI",2.05,27.63],["GAZINCRED S.A. SCFI",2.14,28.98],["BCO DAYCOVAL S.A",2.29,31.26],["BCO INDUSTRIAL DO BRASIL S.A.",2.3,31.44],["COMPREV CFI S.A.",2.31,31.52],["LECCA CFI S.A.",2.32,31.72],["BARU SCFI S/A",3.28,47.37],["SOCINAL S.A. CFI",3.5,51.18],["BCO PINE S.A.",3.69,54.46],["PLACARPAY S.A - SCFI",3.74,55.37],["BCO PAULISTA S.A.",3.97,59.63],["VALOR S/A SCFI",6.45,111.78]]},"veiculo":{"nome":"Aquisição de veículos","bancos":[["BCO RNX S.A.",0,0],["BCO MERCEDES-BENZ S.A.",0.62,7.74],["BANCO CNH INDUSTRIAL CAPITAL S.A",0.98,12.36],["BMW SA CFI",1.02,12.94],["CAIXA ECONOMICA FEDERAL",1.05,13.34],["BCO RCI BRASIL S.A.",1.05,13.28],["BCO DO BRASIL S.A.",1.09,13.86],["BCO DA AMAZONIA S.A.",1.1,14.04],["BANCO HYUNDAI CAPITAL BRASIL",1.3,16.78],["BCO GM S.A.",1.38,17.82],["BANCO TRATON BRASIL S.A.",1.42,18.37],["BCO VOLVO BRASIL S.A.",1.49,19.49],["SCANIA BCO S.A.",1.5,19.6],["BCO BRADESCO S.A.",1.6,21.01],["STELLANTIS FINANCIAMENTOS CFI",1.6,20.94],["SAFRA SCFI S.A.",1.61,21.16],["BCO RODOBENS S.A.",1.63,21.39],["BCO VOLKSWAGEN S.A",1.64,21.5],["BANCO INTER",1.66,21.91],["BCO DO EST. DO PA S.A.",1.71,22.55],["SINOSSERRA S/A - SCFI",1.73,22.8],["BCO TOYOTA DO BRASIL S.A.",1.8,23.82],["SANTANDER SCFI S.A.",1.84,24.4],["BANCO MONEO S.A.",1.87,24.88],["BCO BANESTES S.A.",1.88,24.97],["BCO C6 S.A.",1.93,25.75],["ITAÚ UNIBANCO HOLDING S.A.",1.93,25.74],["BCO BRASILEIRO DE CRÉDITO S.A.",1.95,26.08],["BCO BRADESCO FINANC. S.A.",1.98,26.5],["BRB - CFI S/A",2.02,27.16],["PORTOSEG S.A. CFI",2.06,27.75],["BCO VOTORANTIM S.A.",2.13,28.81],["BCO HONDA S.A.",2.47,33.96],["OMNI BANCO S.A.",2.58,35.77],["BCO YAMAHA MOTOR S.A.",2.62,36.38],["BANCO PAN",2.84,39.99],["AGORACRED S/A SCFI",2.87,40.49],["FINAMAX S.A. CFI",3.07,43.68],["BCO DAYCOVAL S.A",3.25,46.75],["OMNI SA CFI",3.35,48.56]]},"bens":{"nome":"Aquisição de outros bens","bancos":[["STARA FINANCEIRA S.A. - CFI",0.01,0.13],["SINOSSERRA S/A - SCFI",0.2,2.47],["BCO CATERPILLAR S.A.",1.2,15.36],["BANCO TRATON BRASIL S.A.",1.41,18.28],["BCO DE LAGE LANDEN BRASIL S.A.",1.57,20.6],["BCO DO EST. DO PA S.A.",1.63,21.36],["PORTOSEG S.A. CFI",1.97,26.32],["BANCO SICOOB S.A.",1.98,26.54],["BCO ARBI S.A.",1.99,26.68],["SANTANDER SCFI S.A.",2.05,27.52],["BCO BV S.A.",2.15,29.11],["BCO BRADESCO S.A.",2.17,29.42],["BCO DO ESTADO DO RS S.A.",2.19,29.61],["BCO BANESTES S.A.",2.23,30.34],["BECKER FINANCEIRA SA - CFI",2.28,31.11],["SOLFÁCIL SCFI",2.31,31.45],["TODESCREDI S/A - CFI",2.32,31.73],["BARU SCFI S/A",2.5,34.49],["BCO BRADESCO FINANC. S.A.",2.79,39.13],["HS FINANCEIRA",2.81,39.43],["BCO SOFISA S.A.",2.84,39.86],["BCO DO BRASIL S.A.",3.32,47.99],["LEBES FINANCEIRA S.A. - CFI",4.49,69.31],["KREDILIG S.A. - CFI",4.7,73.59],["CENTROCRED S.A. CFI",4.77,74.96],["GRAZZIOTIN FINANCEIRA S/A",5.48,89.72],["AGORACRED S/A SCFI",6.23,106.6],["VIA CERTA FINANCIADORA S.A. - CFI",6.24,106.79],["NEGRESCO S.A. - CFI",6.56,114.35],["ZEMA CFI S/A",7.35,134.21],["MERCADO CRÉDITO SCFI S.A.",7.53,139.03],["MAGALUPAY SCFI S.A.",7.58,140.41],["BANCO SEMEAR",7.95,150.4],["BANCO INTER",8.38,162.55],["COBUCCIO S.A. SCFI",9.28,189.92]]}}};
+/*TAXAS-FIM*/
+
 /* ================= dados ================= */
 const KEY = 'ctrl-fin-v1';
 const CATEGORIAS = ['Eletrônicos','Serviços','Vestuário','Alimentação','Mercado','Transporte','Moradia','Saúde','Lazer','Assinaturas','Compras','Contas','Educação','Financiamento','Empréstimo','Pensão paga','Impostos e taxas','Outros'];
@@ -812,8 +848,11 @@ function formNovoGasto(){
     <label>Valor (R$)<input id="g-valor" type="number" step="0.01" min="0.01" required></label>
     <label>Parcelas<select id="g-n">${optsParcelas(1)}</select></label>
     <label>Esse valor é<select id="g-tipo"><option value="parcela">De cada parcela</option><option value="total">Total (compra ou valor emprestado)</option></select></label>
-    <label>Juros ao mês (%)<input id="g-juros" type="number" step="0.01" min="0" max="30" value="0" placeholder="Ex.: 2,99"></label>
-    <label>Pago com<select id="g-cartao" onchange="if(this.value==='__financiamento'){document.getElementById('g-tipo').value='total'}">
+    <label>Juros ao mês (%)<input id="g-juros" type="number" step="0.0001" min="0" max="30" value="0" placeholder="Ex.: 2,99"></label>
+    <label>Preço à vista (opcional)<input id="g-vista" type="number" step="0.01" min="0" placeholder="Para descobrir os juros"></label>
+    <label>Tipo de crédito (média do Banco Central)<select id="g-bmod" onchange="document.getElementById('g-banco').innerHTML=opcoesBancos(this.value)">${Object.keys(MOD_NOMES).map(k => `<option value="${k}" ${k === (db.cartoes.length ? 'parcelado' : 'pessoal') ? 'selected' : ''}>${MOD_NOMES[k]}</option>`).join('')}</select></label>
+    <label>Banco<select id="g-banco" onchange="usarTaxaBanco()">${opcoesBancos(db.cartoes.length ? 'parcelado' : 'pessoal')}</select></label>
+    <label>Pago com<select id="g-cartao" onchange="if(this.value==='__financiamento'){document.getElementById('g-tipo').value='total';const m=document.getElementById('g-bmod');m.value='pessoal';m.onchange()}">
       ${db.cartoes.length ? `<optgroup label="Cartão de crédito">${db.cartoes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</optgroup>` : ''}
       <optgroup label="Outras formas">${Object.entries(FORMAS).map(([k, n]) => `<option value="__${k}">${n}</option>`).join('')}</optgroup>
     </select></label>
@@ -934,7 +973,7 @@ function addGasto(e){
   const cartao = pagoCom && !pagoCom.startsWith('__') ? cardOf(pagoCom) : null;
   const forma = cartao ? 'cartao' : (pagoCom || '__pix').slice(2);
   if(valor <= 0){ toast('Informe um valor maior que zero'); return; }
-  const c = contaJuros(valor, n, val('g-tipo'), num(val('g-juros')));
+  const c = lerGasto();
   const vp = c.vp, total = c.total;
   const parcelas = criarParcelas(total, n, val('g-data'), cartao, val('g-ref') || null, vp);
   const k = Math.max(0, Math.min(n, parseInt(val('g-pagas')) || 0));
@@ -960,19 +999,62 @@ function contaJuros(valor, n, tipo, jurosPct){
   }
   return { vp:null, total:valor, principal:valor, juros:0, custo:0 };
 }
+/* ---------- taxas de referência ---------- */
+const MOD_NOMES = { parcelado:'Cartão: parcelado com juros', rotativo:'Cartão: rotativo (fatura não paga)', pessoal:'Empréstimo pessoal', cheque:'Cheque especial',
+  consig_inss:'Consignado INSS', consig_privado:'Consignado privado (CLT)', consig_publico:'Consignado servidor público', veiculo:'Financiamento de veículo', bens:'Financiamento de outros bens' };
+const pct = (v, d = 2) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits:d, maximumFractionDigits:d }) + '%';
+const bancosDe = mod => TAXAS_BCB.modalidades[mod].bancos.filter(b => b[1] > 0);
+const mediana = arr => { const s = [...arr].sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function opcoesBancos(mod){
+  const bs = [...bancosDe(mod)].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'));
+  return `<option value="">Escolha para usar a taxa do banco</option>` + bs.map(b => `<option value="${b[1]}">${esc(b[0])}: ${pct(b[1])} ao mês</option>`).join('');
+}
+function usarTaxaBanco(){
+  const v = val('g-banco'); if(!v) return;
+  document.getElementById('g-juros').value = v; document.getElementById('g-vista').value = '';
+  prevGasto();
+}
+/* Taxa mensal que faz n parcelas iguais valerem o preço à vista hoje (tabela Price, busca binária com 200 passos) */
+function taxaImplicita(vista, parcela, n){
+  if(!(vista > 0 && parcela > 0 && n > 0) || parcela * n <= vista + 0.005) return 0;
+  const pv = r => parcela * (1 - Math.pow(1 + r, -n)) / r;
+  let lo = 1e-12, hi = 5;
+  for(let i = 0; i < 200; i++){ const mid = (lo + hi) / 2; if(pv(mid) > vista) lo = mid; else hi = mid; }
+  return (lo + hi) / 2 * 100;
+}
+/* Lê o formulário de gasto. Com preço à vista, os juros são descobertos (não digitados). */
+function lerGasto(){
+  const valor = num(val('g-valor')), n = parseInt(val('g-n')) || 1, tipo = val('g-tipo'), vista = num(val('g-vista'));
+  if(vista > 0 && valor > 0 && n > 1){
+    const parcela = tipo === 'parcela' ? valor : round2(valor / n), total = round2(parcela * n);
+    const t = taxaImplicita(vista, parcela, n);
+    return t > 0 ? { vp:parcela, total, principal:vista, juros:Math.round(t * 10000) / 10000, custo:round2(total - vista), implicita:true }
+                 : { vp:parcela, total, principal:total, juros:0, custo:0, implicita:true, semJuros:true };
+  }
+  return { ...contaJuros(valor, n, tipo, num(val('g-juros'))), implicita:false };
+}
 function prevGasto(){
   const box = document.getElementById('g-prev'); if(!box) return;
-  const valor = num(val('g-valor')), n = parseInt(val('g-n')) || 1, jp = num(val('g-juros'));
+  const valor = num(val('g-valor')), n = parseInt(val('g-n')) || 1;
   if(!(valor > 0)){ box.style.display = 'none'; return; }
-  const c = contaJuros(valor, n, val('g-tipo'), jp);
+  const c = lerGasto(), jp = c.juros;
+  const jIn = document.getElementById('g-juros');
+  if(c.implicita){ jIn.value = jp; jIn.readOnly = true; } else jIn.readOnly = false;
   const parcela = c.vp || round2(c.total / n);
   const anual = jp > 0 ? (Math.pow(1 + jp / 100, 12) - 1) * 100 : 0;
-  box.style.display = 'block';
-  box.innerHTML = n === 1 && !(jp > 0)
+  let html = n === 1 && !(jp > 0)
     ? `À vista: ${M(c.total)}`
-    : `<b>${n}x de ${M(parcela)}</b>, total pago ${M(c.total)}.` +
-      (jp > 0 ? `<br>${val('g-tipo') === 'parcela' ? 'Valor emprestado de fato' : 'Valor emprestado'}: ${M(c.principal)}. Juros de ${jp.toLocaleString('pt-BR')}% ao mês (${anual.toFixed(1).replace('.', ',')}% ao ano): <span class="badt">${M(c.custo)} a mais</span>.`
-               : `<br><span class="mute small">Sem juros. Se for empréstimo ou parcelado com juros, preencha "Juros ao mês".</span>`);
+    : `<b>${n}x de ${M(parcela)}</b>, total pago ${M(c.total)}.`;
+  if(c.implicita) html += c.semJuros
+    ? `<br>Sem juros: as parcelas somam até o preço à vista de ${M(num(val('g-vista')))}.`
+    : `<br>Juros descobertos pelo preço à vista de ${M(c.principal)}: <b>${pct(jp)} ao mês</b> (${pct(anual, 1)} ao ano). Você paga <span class="badt">${M(c.custo)} a mais</span>.`;
+  else if(jp > 0) html += `<br>${val('g-tipo') === 'parcela' ? 'Valor emprestado de fato' : 'Valor emprestado'}: ${M(c.principal)}. Juros de ${pct(jp)} ao mês (${pct(anual, 1)} ao ano): <span class="badt">${M(c.custo)} a mais</span>.`;
+  else if(n > 1) html += `<br><span class="mute small">Sem juros. Se tiver juros, preencha "Juros ao mês", escolha o banco ou informe o preço à vista.</span>`;
+  if(jp > 0){
+    const mod = val('g-bmod'), md = mediana(bancosDe(mod).map(b => b[1]));
+    html += `<br><span class="mute small">Referência: a taxa mediana dos bancos em "${MOD_NOMES[mod]}" é ${pct(md)} ao mês (Banco Central, ${TAXAS_BCB.periodo}). A sua está ${jp > md * 1.05 ? 'acima' : jp < md * 0.95 ? 'abaixo' : 'perto'} da mediana.</span>`;
+  }
+  box.style.display = 'block'; box.innerHTML = html;
 }
 
 /* ---------- recebimentos (entradas avulsas) ---------- */
@@ -1141,6 +1223,52 @@ function pagarFatura(cid, ref, pagar){
 }
 
 /* ================= PLANEJAR ================= */
+let refBanco = { mod:'parcelado', q:'' };
+function tabelaBancos(){
+  const q = refBanco.q.trim().toLowerCase();
+  const todos = bancosDe(refBanco.mod), md = mediana(todos.map(b => b[1]));
+  const lista = todos.filter(b => !q || b[0].toLowerCase().includes(q));
+  if(!lista.length) return '<div class="empty">Nenhum banco com esse nome nesta modalidade.</div>';
+  return `<p class="mute small" style="margin:0 0 8px">${todos.length} bancos. Mediana: <b>${pct(md)} ao mês</b>. Do mais barato para o mais caro.</p>
+  <div style="max-height:380px;overflow:auto"><table><thead><tr><th>#</th><th>Banco</th><th style="text-align:right">Ao mês</th><th style="text-align:right">Ao ano</th></tr></thead><tbody>
+  ${lista.map(b => `<tr><td class="mute">${todos.indexOf(b) + 1}</td><td>${esc(b[0])}</td><td style="text-align:right" class="${b[1] > md ? 'badt' : 'good'}">${pct(b[1])}</td><td style="text-align:right" class="mute">${pct(b[2], 1)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+const aliquotaIR = dias => TAXAS_REF.ir.find(([lim]) => dias <= lim)[1];
+function calcRende(e){
+  e.preventDefault();
+  const v = num(val('iv-valor')), meses = Math.max(1, Math.round(num(val('iv-meses')))), tipo = val('iv-tipo');
+  const p = tipo === 'selic' ? 100 : Math.max(0, num(val('iv-pct')));
+  let fator, nome;
+  if(tipo === 'poup'){ fator = Math.pow(1 + TAXAS_REF.indices.poupanca.valor / 100, meses); nome = 'Poupança'; }
+  else {
+    const diaCdi = Math.pow(1 + TAXAS_REF.indices.cdi.valor / 100, 1 / 252) - 1;
+    fator = Math.pow(1 + diaCdi * p / 100, Math.round(meses * 21));
+    nome = tipo === 'selic' ? 'Tesouro Selic' : `${tipo === 'lci' ? 'LCI/LCA' : 'CDB'} de ${pct(p, 0)} do CDI`;
+  }
+  const bruto = round2(v * (fator - 1));
+  // prazo em dias corridos (mês médio de 30,4375 dias): 6 meses = 183 dias, 12 meses = 365 dias
+  const aliq = tipo === 'cdb' || tipo === 'selic' ? aliquotaIR(Math.round(meses * 30.4375)) : 0;
+  const ir = round2(bruto * aliq / 100), liq = round2(bruto - ir), final = round2(v + liq);
+  const mensal = (Math.pow(final / v, 1 / meses) - 1) * 100;
+  $('#res-rende').innerHTML = `<div class="res">
+    <b>${nome}</b>, ${meses} ${meses > 1 ? 'meses' : 'mês'}: rende ${M(bruto)} bruto.<br>
+    ${aliq ? `Imposto de renda de ${pct(aliq, 1)} sobre o lucro: ${M(ir)}.<br>` : 'Isento de imposto de renda.<br>'}
+    Você fica com <b class="good">${M(final)}</b> (lucro líquido de ${M(liq)}), ou ${pct(mensal)} ao mês livre.
+    ${tipo === 'selic' ? '<br><span class="mute small">No Tesouro Selic há taxa da B3 de 0,20% ao ano sobre o que passar de R$ 10 mil.</span>' : ''}</div>`;
+}
+function calcMaq(e){
+  e.preventDefault();
+  const v = num(val('mq-valor')), i = parseInt(val('mq-n')), tab = TAXAS_REF.maquininha.find(t => t.id === val('mq-tab'));
+  const t = tab.t[i];
+  if(t == null){ $('#res-maq').innerHTML = '<div class="res">Essa tabela não aceita débito. Escolha crédito.</div>'; return; }
+  const desc = round2(v * t / 100), recebe = round2(v - desc);
+  const cobrar = round2(v / (1 - t / 100));
+  const forma = i === 0 ? 'no débito' : i === 1 ? 'no crédito à vista' : `no crédito em ${i}x`;
+  $('#res-maq').innerHTML = `<div class="res">
+    Taxa de <b>${pct(t)}</b> ${forma}: descontam ${M(desc)} e você recebe <b class="good">${M(recebe)}</b>.<br>
+    Para receber ${M(v)} limpos, cobre ${M(cobrar)}${i >= 2 ? ` (${i}x de ${M(round2(cobrar / i))})` : ''}.</div>`;
+}
 function vPlanejar(){
   const cur = MES_ATUAL();
   return `
@@ -1215,6 +1343,50 @@ function vPlanejar(){
         </form>
         <div id="res-rot"></div>
       </div>
+    </div>
+  </section>
+
+  <section class="sec two">
+    <div>
+      <div class="sec-h"><h2>Quanto rende</h2><span class="mute">CDB, LCI/LCA, Tesouro Selic, poupança</span></div>
+      <div class="panel">
+        <form class="form" onsubmit="calcRende(event)">
+          <label>Valor investido<input id="iv-valor" type="number" step="0.01" min="1" required></label>
+          <label>Prazo (meses)<input id="iv-meses" type="number" min="1" max="360" value="12" required></label>
+          <label>Investimento<select id="iv-tipo">
+            <option value="cdb">CDB, RDB ou LC (tem IR)</option><option value="lci">LCI ou LCA (isento de IR)</option>
+            <option value="selic">Tesouro Selic (tem IR)</option><option value="poup">Poupança (isenta)</option></select></label>
+          <label>% do CDI<input id="iv-pct" type="number" step="0.01" min="1" max="300" value="100"></label>
+          <button class="btn">Calcular</button>
+        </form>
+        <div id="res-rende"></div>
+        <p class="mute small" style="margin:12px 0 0">CDI ${pct(TAXAS_REF.indices.cdi.valor)} ao ano e poupança ${pct(TAXAS_REF.indices.poupanca.valor, 4)} ao mês (Banco Central, ${TAXAS_REF.indices.cdi.data}). Selic ${pct(TAXAS_REF.indices.selicMeta.valor)}. Estimativa: considera 21 dias úteis por mês e taxas constantes.</p>
+      </div>
+    </div>
+    <div>
+      <div class="sec-h"><h2>Taxa da maquininha</h2><span class="mute">Quanto você recebe</span></div>
+      <div class="panel">
+        <form class="form" onsubmit="calcMaq(event)">
+          <label>Valor da venda<input id="mq-valor" type="number" step="0.01" min="0.01" required></label>
+          <label>Forma<select id="mq-n"><option value="0">Débito</option><option value="1">Crédito à vista</option>${[...Array(11).keys()].map(i => `<option value="${i + 2}">Crédito ${i + 2}x</option>`).join('')}</select></label>
+          <label style="grid-column:1/-1">Tabela<select id="mq-tab">${TAXAS_REF.maquininha.map(t => `<option value="${t.id}">${esc(t.nome)}</option>`).join('')}</select></label>
+          <button class="btn">Calcular</button>
+        </form>
+        <div id="res-maq"></div>
+        <p class="mute small" style="margin:12px 0 0">Tabelas oficiais da InfinitePay lidas em ${TAXAS_REF.atualizadoEm}. Pix grátis. Outras maquininhas (Mercado Pago, Ton, PagBank, Stone, C6 Pay, Cielo, Rede) mudam a taxa por faturamento e plano: confira no app delas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Juros dos bancos</h2><span class="mute">Média de cada banco, Banco Central, ${TAXAS_BCB.periodo}</span></div>
+    <div class="panel">
+      <div class="toolbar" style="grid-template-columns:1fr 1fr">
+        <select onchange="refBanco.mod=this.value;render()" aria-label="Tipo de crédito">${Object.keys(MOD_NOMES).map(k => `<option value="${k}" ${refBanco.mod === k ? 'selected' : ''}>${MOD_NOMES[k]}</option>`).join('')}</select>
+        <input class="search" type="search" id="ref-q" placeholder="Buscar banco (ex.: Itaú, Bradesco, C6)" value="${esc(refBanco.q)}" oninput="refBanco.q=this.value;clearTimeout(window._rq);window._rq=setTimeout(()=>{render();const s=document.getElementById('ref-q');s.focus();s.setSelectionRange(s.value.length,s.value.length)},250)">
+      </div>
+      ${tabelaBancos()}
+      <p class="mute small" style="margin:12px 0 0">${esc(TAXAS_BCB.obs)} Fonte: ${esc(TAXAS_BCB.fonte)}.</p>
     </div>
   </section>
 
