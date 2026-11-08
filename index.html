@@ -191,10 +191,30 @@ input[type=month],input[type=date]{color-scheme:dark}
 .hero-kpis > div > span{font-size:12px;color:var(--mute)}
 .hero-kpis b{font:500 clamp(16px,2.2vw,21px) var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero-kpis b.warn{color:var(--warn)}
+/* bancos e Pix automáticos */
+nav button{position:relative}
+.badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--bad);color:#fff;font:700 11px/18px var(--sans);font-style:normal;text-align:center}
+.pend{padding:12px 0;border-bottom:1px solid rgba(40,51,79,.7)}
+.pend:last-of-type{border-bottom:0}
+.pend-top{display:flex;align-items:center;gap:12px}
+.pend-top .grow{flex:1;min-width:0}
+.pend-top .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pend-top .s{font-size:13px;color:var(--mute)}
+.pend-ctl{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0 36px}
+.pend-ctl select{width:auto;flex:1 1 150px;padding:8px 10px;font-size:14px}
+.pend-txt{margin:8px 0 0 36px;font-style:italic;overflow-wrap:anywhere}
+.chips-bancos{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.chips-bancos span{font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);color:var(--text2)}
+.passos{padding-left:20px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.copia{display:flex;gap:8px;align-items:center;margin-top:6px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.copia code{flex:1;min-width:0;overflow-wrap:anywhere;font-size:12px;color:var(--gold)}
+.seg-lista{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--text2);font-size:14px}
+@media (max-width:600px){.pend-ctl{margin-left:0}.pend-txt{margin-left:0}}
 /* extrato do mês */
 .panel.ext{padding:6px 22px 16px}
 .ext-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0 6px}
-.ext-h h3{margin:0;font:500 18px var(--serif);color:var(--text)}
+.ext-h h3{margin:0;font:500 18px var(--serif);color:var(--text);display:flex;align-items:center;gap:8px}
+.ext-h{flex-wrap:wrap}
 .ext-h a{font-size:13px;text-decoration:none}
 .ext-sub{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold2);margin:14px 0 2px}
 .ext-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(40,51,79,.55);font-size:15px}
@@ -312,6 +332,7 @@ body.carregando #carregando{display:grid}
 .userchip{display:flex;align-items:center;gap:8px;flex:none}
 .userchip span{font-size:13px;color:var(--mute);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:600px){.userchip span{display:none}}
+@media (min-width:761px) and (max-width:1100px){nav.tabs button{padding:8px 9px;gap:6px;font-size:13px} .wm-fin{display:none} .userchip span{display:none}}
 </style>
 </head>
 <body class="carregando">
@@ -644,14 +665,16 @@ const I = {
 };
 
 /* ================= navegação ================= */
-const TABS = [['inicio','Início',I.home],['cartoes','Cartões',I.card],['lanc','Lançamentos',I.list],['faturas','Faturas',I.bill],['planejar','Planejar',I.plan]];
+I.bank = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3.5 20.5h17"/></svg>';
+const TABS = [['inicio','Início',I.home],['cartoes','Cartões',I.card],['lanc','Lançamentos',I.list],['faturas','Faturas',I.bill],['bancos','Bancos',I.bank],['planejar','Planejar',I.plan]];
 let tab = 'inicio';
-function setTab(t){ tab = t; render(); window.scrollTo(0, 0); }
+function setTab(t){ tab = t; render(); window.scrollTo(0, 0); if(t === 'bancos') carregarExternas(); }
 function render(){
-  $('#tabs').innerHTML = TABS.map(([k, n, ic]) => `<button class="${tab===k?'on':''}" onclick="setTab('${k}')" ${tab===k?'aria-current="page"':''}>${ic}<span>${n}</span></button>`).join('');
+  const nPend = ext.pend.length;
+  $('#tabs').innerHTML = TABS.map(([k, n, ic]) => `<button class="${tab===k?'on':''}" onclick="setTab('${k}')" ${tab===k?'aria-current="page"':''}>${ic}<span>${n}</span>${k === 'bancos' && nPend ? `<i class="badge">${nPend > 99 ? '99+' : nPend}</i>` : ''}</button>`).join('');
   $('#eye').innerHTML = db.privado ? I.eyeOff : I.eye;
   document.body.classList.toggle('privado', !!db.privado);
-  const v = { inicio:vInicio, cartoes:vCartoes, lanc:vLanc, faturas:vFaturas, planejar:vPlanejar }[tab]();
+  const v = { inicio:vInicio, cartoes:vCartoes, lanc:vLanc, faturas:vFaturas, bancos:vBancos, planejar:vPlanejar }[tab]();
   $('#main').innerHTML = `<div class="view">${v}</div>`;
 }
 function togglePrivado(){ db.privado = !db.privado; save(); render(); toast(db.privado ? 'Valores ocultos' : 'Valores visíveis'); }
@@ -894,6 +917,7 @@ function linhaVenc(x){
 function avisos(atrasos){
   const out = [];
   const cur = MES_ATUAL();
+  if(ext.pend.length) out.push(['warn', I.bank, `<b>${ext.pend.length} movimentaç${ext.pend.length > 1 ? 'ões' : 'ão'} do banco para classificar.</b> <a href="#" onclick="event.preventDefault();setTab('bancos')">Abrir Bancos</a>`]);
   if(atrasos.length) out.push(['bad', I.alert, `<b>${atrasos.length} conta${atrasos.length > 1 ? 's' : ''} em atraso</b>, somando ${M(sum(atrasos, x => x.valor))}. Juros do cartão crescem rápido, priorize essas.`]);
   const em3 = compromissos(cur).concat(compromissos(nextRef(cur))).filter(x => stOf(x) === 'aberta' && (parseISO(x.venc) - hoje()) / 864e5 <= 3);
   if(em3.length) out.push(['warn', I.clock, `<b>${em3.length} vencimento${em3.length > 1 ? 's' : ''} nos próximos 3 dias</b>, no total de ${M(sum(em3, x => x.valor))}.`]);
@@ -1466,6 +1490,251 @@ function pagarFatura(cid, ref, pagar){
   save(); render(); toast(pagar ? 'Fatura marcada como paga' : 'Fatura reaberta');
 }
 
+/* ================= BANCOS: Pix e movimentações automáticas =================
+   Duas fontes gravam em public.transacoes_externas (só o servidor grava):
+   - notificações dos apps de banco no Android (função "notificacao", com código do celular);
+   - Open Finance pela Pluggy (funções "pluggy" e "pluggy-webhook").
+   O app lança sozinho o que for claro (entrada, Pix/boleto de saída) e deixa o resto em "A classificar". */
+const FN_URL = SUPABASE_URL + '/functions/v1';
+const PLUGGY_JS = 'https://cdn.pluggy.ai/pluggy-connect/v2.8.2/pluggy-connect.js';
+let ext = { pend:[], disp:[], con:[], cfg:null, novoToken:null, canal:null, carregando:false, teste:null };
+
+async function carregarExternas(){
+  if(!usuario || ext.carregando) return;
+  ext.carregando = true;
+  try{
+    const [p, d, c] = await Promise.all([
+      sb.from('transacoes_externas').select('*').eq('status', 'pendente').order('data', { ascending:false }).limit(300),
+      sb.from('dispositivos').select('id, nome, criado_em, ultimo_uso, revogado').order('criado_em', { ascending:false }),
+      sb.from('conexoes_banco').select('*').order('criado_em', { ascending:false })
+    ]);
+    if(!p.error) ext.pend = p.data;
+    if(!d.error) ext.disp = d.data;
+    if(!c.error) ext.con = c.data;
+    await autoLancar();
+  }finally{ ext.carregando = false; }
+  render();
+}
+function assinarExternas(){
+  if(ext.canal) sb.removeChannel(ext.canal);
+  ext.canal = sb.channel('ext-' + usuario.id)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'transacoes_externas', filter:`user_id=eq.${usuario.id}` }, () => carregarExternas())
+    .subscribe();
+}
+
+// Já existe o mesmo valor, no mesmo dia (±1) e banco, vindo da outra fonte? Então é a mesma movimentação.
+function jaLancada(p){
+  const lst = [...db.entradas, ...db.gastos].filter(x => x.ext);
+  if(lst.some(x => x.ext.id === p.id)) return true;
+  const d = parseISO(p.data);
+  return lst.some(x => x.ext.origem !== p.origem && x.ext.tipo === p.tipo && Math.abs(x.ext.valor - Number(p.valor)) < 0.005 &&
+    Math.abs(parseISO(x.ext.data) - d) <= 864e5 && (!x.ext.banco || !p.banco || x.ext.banco === p.banco));
+}
+const clara = p => p.tipo === 'entrada' || (p.tipo === 'saida' && ['pix','boleto','outro'].includes(p.forma));
+function criarLancamento(p, o = {}){
+  const tipo = o.tipo || p.tipo, v = round2(Number(p.valor)), data = p.data;
+  const extInfo = { id:p.id, origem:p.origem, banco:p.banco || null, tipo, valor:v, data };
+  const desc = (p.descricao || (tipo === 'entrada' ? 'Recebimento' : 'Pagamento')).slice(0, 80) + (p.banco ? ` (${p.banco})` : '');
+  if(tipo === 'entrada'){
+    db.entradas.push({ id:uid(), descricao:desc, valorTotal:v, n:1, categoria:o.categoria || (p.forma === 'pix' ? 'Pix recebido' : 'Outros recebimentos'), ext:extInfo,
+      parcelas:[{ n:1, valor:v, data, ref:data.slice(0, 7), status:'recebida', recebidaEm:data }] });
+  } else {
+    const card = o.cartaoId ? cardOf(o.cartaoId) : null;
+    const forma = card ? null : (o.forma || (p.forma === 'boleto' ? 'boleto' : 'pix'));
+    const parcelas = criarParcelas(v, 1, data, card, null);
+    if(!card) parcelas.forEach(x => { x.status = 'paga'; x.pagaEm = data; });
+    db.gastos.push({ id:uid(), descricao:desc, valorTotal:v, n:1, dataCompra:data, cartaoId:card ? card.id : null, forma, categoria:o.categoria || 'Outros', ext:extInfo, parcelas });
+  }
+}
+async function marcarExterna(ids, status){
+  if(!ids.length) return;
+  const { error } = await sb.from('transacoes_externas').update({ status }).in('id', ids);
+  if(error) toast('Não foi possível atualizar no servidor. Tente de novo.');
+  ext.pend = ext.pend.filter(p => !ids.includes(p.id));
+}
+async function autoLancar(){
+  if(db.autoPix === false) return;
+  const lanc = [], dup = []; let ent = 0, sai = 0;
+  for(const p of ext.pend){
+    if(jaLancada(p)){ dup.push(p.id); continue; }
+    if(!clara(p)) continue;
+    criarLancamento(p); lanc.push(p.id);
+    p.tipo === 'entrada' ? ent += Number(p.valor) : sai += Number(p.valor);
+  }
+  if(lanc.length){ save(); toast(`${lanc.length} movimentaç${lanc.length > 1 ? 'ões lançadas' : 'ão lançada'}: + ${brl(ent)} / − ${brl(sai)}`); }
+  await marcarExterna(lanc, 'lancada');
+  await marcarExterna(dup, 'ignorada');
+}
+async function lancarPend(id){
+  const p = ext.pend.find(x => x.id === id); if(!p) return;
+  const tipo = val('px-tipo-' + id);
+  if(!tipo){ toast('Escolha se entrou ou saiu'); return; }
+  const f = tipo === 'saida' ? val('px-forma-' + id) : '';
+  if(f === 'fatura'){ await marcarExterna([id], 'ignorada'); render(); toast('Pagamento de fatura: as compras já estão no cartão'); return; }
+  if(!jaLancada(p)){
+    criarLancamento(p, { tipo, categoria:val('px-cat-' + id), cartaoId:f.startsWith('card:') ? f.slice(5) : null, forma:f.startsWith('card:') ? null : f });
+    save();
+  }
+  await marcarExterna([id], 'lancada'); render(); toast('Lançado');
+}
+async function ignorarPend(id){ await marcarExterna([id], 'ignorada'); render(); toast('Ignorado'); }
+
+async function criarDispositivo(){
+  const nome = (val('d-nome') || 'Celular').trim();
+  const { data, error } = await sb.rpc('criar_dispositivo', { p_nome:nome });
+  if(error){ toast(error.message); return; }
+  ext.novoToken = data; ext.teste = null; await carregarExternas();
+}
+async function revogarDispositivo(id){
+  if(!confirm('Desativar este celular? Ele deixa de mandar os avisos de Pix.')) return;
+  await sb.from('dispositivos').update({ revogado:true }).eq('id', id);
+  await carregarExternas(); toast('Celular desativado');
+}
+async function testarNotificacao(){
+  const r = await fetch(FN_URL + '/notificacao', { method:'POST', headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify({ token:ext.novoToken, teste:true, app:'com.nu.production', titulo:'Transferência recebida', texto:'Você recebeu uma transferência de R$ 10,00 de Maria Silva' }) });
+  ext.teste = r.ok ? await r.json() : { erro:r.status }; render();
+}
+function copiar(txt){ navigator.clipboard?.writeText(txt).then(() => toast('Copiado'), () => toast('Não foi possível copiar')); }
+
+async function chamarPluggy(corpo){
+  const { data, error } = await sb.functions.invoke('pluggy', { body:corpo });
+  if(error){
+    let msg = 'Falha ao falar com o servidor.';
+    try{ const j = await error.context.json(); msg = j.erro === 'nao_configurado' ? 'O Open Finance ainda não foi ativado no servidor.' : (j.erro || msg); }catch(e){}
+    throw new Error(msg);
+  }
+  return data;
+}
+async function statusPluggy(){
+  try{ ext.cfg = await chamarPluggy({ acao:'status' }); }catch(e){ ext.cfg = { configurado:false }; }
+  render();
+}
+function carregarScript(src){
+  return new Promise((ok, erro) => {
+    if(window.PluggyConnect) return ok();
+    const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => erro(new Error('Não foi possível abrir a conexão com o banco.'));
+    document.head.appendChild(s);
+  });
+}
+async function conectarBanco(itemId){
+  try{
+    toast('Abrindo a conexão segura…');
+    const { accessToken, sandbox } = await chamarPluggy({ acao:'token', itemId:itemId || undefined });
+    await carregarScript(PLUGGY_JS);
+    const pc = new window.PluggyConnect({
+      connectToken:accessToken, includeSandbox:!!sandbox, language:'pt', theme:'dark', updateItem:itemId || undefined,
+      onSuccess: async ({ item }) => {
+        try{ const r = await chamarPluggy({ acao:'salvar', itemId:item.id }); toast(`${r.banco || 'Banco'} conectado. ${r.novas} movimentações trazidas.`); }
+        catch(e){ toast(e.message); }
+        carregarExternas();
+      },
+      onError: (e) => toast((e && e.message) || 'A conexão não foi concluída.')
+    });
+    pc.init();
+  }catch(e){ toast(e.message); }
+}
+async function atualizarBanco(itemId){
+  try{ toast('Buscando movimentações…'); const r = await chamarPluggy({ acao:'atualizar', itemId }); toast(`${r.novas} movimentaç${r.novas === 1 ? 'ão nova' : 'ões novas'}`); carregarExternas(); }
+  catch(e){ toast(e.message); }
+}
+async function desconectarBanco(itemId, nome){
+  if(!confirm(`Desconectar ${nome || 'este banco'}? O app para de receber as movimentações dele. O que já foi lançado continua.`)) return;
+  try{ await chamarPluggy({ acao:'remover', itemId }); toast('Banco desconectado'); carregarExternas(); }catch(e){ toast(e.message); }
+}
+
+function itemPend(p){
+  const id = p.id, sai = (p.tipo || 'saida') === 'saida';
+  const optsCat = (sai ? CATEGORIAS : CAT_ENTRADA).map(c => `<option ${c === (sai ? 'Outros' : (p.forma === 'pix' ? 'Pix recebido' : 'Outros recebimentos')) ? 'selected' : ''}>${c}</option>`).join('');
+  const optsForma = `<option value="pix" ${p.forma === 'pix' || p.forma === 'outro' ? 'selected' : ''}>Pix, débito ou dinheiro</option><option value="boleto" ${p.forma === 'boleto' ? 'selected' : ''}>Boleto</option>
+    ${db.cartoes.map(c => `<option value="card:${c.id}" ${p.forma === 'cartao' && p.banco && c.nome.toLowerCase().includes(p.banco.toLowerCase().split(' ')[0]) ? 'selected' : ''}>Cartão ${esc(c.nome)}</option>`).join('')}
+    <option value="fatura" ${p.forma === 'fatura' ? 'selected' : ''}>Pagamento de fatura (não lançar)</option>`;
+  return `<div class="pend">
+    <div class="pend-top">
+      <span class="sinal ${p.tipo === 'entrada' ? 'in' : p.tipo === 'saida' ? 'out' : ''}">${p.tipo === 'entrada' ? '+' : p.tipo === 'saida' ? '−' : '?'}</span>
+      <div class="grow"><div class="t">${esc(p.descricao)}</div>
+        <div class="s">${esc(p.banco || 'Banco')} · ${fmtBR(p.data)} · ${p.origem === 'notificacao' ? 'aviso do celular' : 'Open Finance'}${p.forma === 'cartao' ? ' · compra no cartão' : p.forma === 'fatura' ? ' · parece pagamento de fatura' : ''}</div></div>
+      <div class="r num ${p.tipo === 'entrada' ? 'val-in' : ''}">${M(p.valor)}</div>
+    </div>
+    <div class="pend-ctl">
+      <select id="px-tipo-${id}" aria-label="Entrou ou saiu" onchange="const s=this.value==='saida';document.getElementById('px-forma-${id}').style.display=s?'':'none'">
+        <option value="" ${p.tipo ? '' : 'selected'}>Entrou ou saiu?</option><option value="entrada" ${p.tipo === 'entrada' ? 'selected' : ''}>+ Entrou (recebimento)</option><option value="saida" ${p.tipo === 'saida' ? 'selected' : ''}>− Saiu (gasto)</option></select>
+      <select id="px-forma-${id}" aria-label="Como saiu" style="${p.tipo === 'entrada' ? 'display:none' : ''}">${optsForma}</select>
+      <select id="px-cat-${id}" aria-label="Categoria">${optsCat}</select>
+      <button class="btn sm" onclick="lancarPend('${id}')">Lançar</button>
+      <button class="btn ghost sm" onclick="ignorarPend('${id}')">Ignorar</button>
+    </div>
+    ${p.texto_original ? `<div class="mute small pend-txt">“${esc(p.texto_original)}”</div>` : ''}
+  </div>`;
+}
+
+function vBancos(){
+  if(ext.cfg === null && usuario) setTimeout(statusPluggy, 0);
+  const ativos = ext.disp.filter(d => !d.revogado);
+  const cfgOk = ext.cfg && ext.cfg.configurado;
+  const corpoJson = ext.novoToken ? `{"token":"${ext.novoToken}","app":"[not_app_name]","titulo":"[not_title]","texto":"[notification]"}` : '';
+  return `
+  <div class="sec-h" style="margin-top:0"><h2>Bancos e Pix automáticos</h2></div>
+  <p class="mute" style="margin:-6px 0 18px;max-width:70ch">Conecte seus bancos e os Pix entram sozinhos: o que você recebe vira <b class="val-in">recebimento</b> e soma no saldo; o que você manda ou paga vira <b>gasto</b> e desconta. Tudo aparece no extrato, nas faturas e no saldo do mês.</p>
+
+  <section class="panel" style="padding:6px 20px 14px">
+    <div class="ext-h"><h3>A classificar ${ext.pend.length ? `<span class="pill open">${ext.pend.length}</span>` : ''}</h3>
+      <label class="mute small" style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" style="width:auto" ${db.autoPix === false ? '' : 'checked'} onchange="db.autoPix=this.checked;save();if(this.checked)autoLancar().then(render)"> Lançar sozinho o que estiver claro</label></div>
+    ${ext.pend.length ? ext.pend.map(itemPend).join('') : `<div class="empty">Nada para classificar. ${ext.disp.length || ext.con.length ? 'Os Pix novos aparecem aqui na hora.' : 'Conecte um banco ou o celular abaixo.'}</div>`}
+    <p class="mute small" style="margin:10px 0 0">Recebimentos e Pix enviados entram sozinhos. Ficam aqui as compras no cartão (para você escolher o cartão), os pagamentos de fatura (que não devem contar duas vezes) e o que não deu para entender. Se o mesmo Pix chegar pelo aviso do celular e pelo Open Finance, ele entra uma vez só.</p>
+  </section>
+
+  <section class="sec two">
+    <div>
+      <div class="sec-h"><h2>Open Finance</h2><span class="mute">iPhone e Android</span></div>
+      <div class="panel" style="padding:16px 20px">
+        <p style="margin-top:0">Conecte a conta pelo sistema oficial do Banco Central. Você escolhe o banco e autoriza no app dele. O JL Finance nunca vê sua senha.</p>
+        <div class="chips-bancos">${['Nubank','Inter','Itaú','Bradesco','Mercado Pago','C6 Bank','Santander','Caixa','Banco do Brasil','PicPay'].map(b => `<span>${b}</span>`).join('')}<span>e outros</span></div>
+        ${cfgOk ? `<button class="btn" onclick="conectarBanco()">+ Conectar banco</button>`
+          : `<div class="alert warn" style="margin:6px 0 0"><div class="ic">${I.alert}</div><div>${ext.cfg === null ? 'Verificando…' : '<b>Ainda não ativado no servidor.</b> Para ligar o Open Finance, o administrador do app precisa colocar as chaves da Pluggy no Supabase (passo a passo no LEIA-ME). Enquanto isso, use os avisos do celular.'}</div></div>`}
+        ${ext.con.length ? `<div class="list" style="margin-top:12px">${ext.con.map(c => `<div class="li"><div class="grow"><div class="t">${esc(c.banco || 'Banco')}</div><div class="s">${c.status === 'SUCCESS' || c.status === 'UPDATED' ? 'Conectado' : esc(c.status || 'Conectando')} · atualizado ${new Date(c.atualizado_em).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })}</div></div>
+          <button class="btn ghost sm" onclick="atualizarBanco('${c.item_id}')">Atualizar</button><button class="btn ghost sm" onclick="conectarBanco('${c.item_id}')">Reconectar</button><button class="btn danger sm" onclick="desconectarBanco('${c.item_id}','${esc(c.banco || '')}')">Desconectar</button></div>`).join('')}</div>` : ''}
+        <p class="mute small" style="margin-bottom:0">O banco envia as movimentações de 1 a 3 vezes por dia. Para ver na hora, use "Atualizar" ou os avisos do celular.</p>
+      </div>
+    </div>
+    <div>
+      <div class="sec-h"><h2>Avisos do celular</h2><span class="mute">Android, na hora</span></div>
+      <div class="panel" style="padding:16px 20px">
+        <p style="margin-top:0">O celular lê o aviso do app do banco ("Você recebeu um Pix de R$ 10,00") e manda para o JL Finance na hora. Funciona com Nubank, Inter, Itaú, Bradesco, Mercado Pago, InfinitePay, C6 e outros.</p>
+        ${ext.novoToken ? `
+          <div class="alert ok" style="margin:0 0 12px"><div class="ic">${I.check}</div><div><b>Celular cadastrado.</b> Copie o código agora: por segurança, ele não aparece de novo.</div></div>
+          <ol class="passos">
+            <li>Instale o <b>MacroDroid</b> (Play Store) e permita o acesso às notificações.</li>
+            <li>Crie uma macro. Gatilho: <b>Notificação recebida</b>, escolhendo os apps dos seus bancos.</li>
+            <li>Ação: <b>Requisição HTTP</b> (HTTP Request), método <b>POST</b>, tipo <b>application/json</b>, para o endereço:
+              <div class="copia"><code>${FN_URL}/notificacao</code><button class="btn ghost sm" onclick="copiar('${FN_URL}/notificacao')">Copiar</button></div></li>
+            <li>Corpo da requisição (já com o seu código):
+              <div class="copia"><code>${esc(corpoJson)}</code><button class="btn ghost sm" onclick='copiar(${JSON.stringify(corpoJson)})'>Copiar</button></div></li>
+            <li>Salve a macro. Pronto: cada Pix que cair ou sair aparece no app.</li>
+          </ol>
+          <button class="btn ghost sm" onclick="testarNotificacao()">Testar a ligação (não grava nada)</button>
+          ${ext.teste ? `<div class="res" style="margin-top:10px">${ext.teste.lido ? `Funcionou. O aviso de teste foi lido como <b>${ext.teste.lido.tipo === 'entrada' ? 'recebimento' : 'gasto'}</b> de <b>${brl(ext.teste.lido.valor)}</b> no ${esc(ext.teste.lido.banco)}.` : `Não funcionou (erro ${esc(ext.teste.erro)}).`}</div>` : ''}
+          <button class="btn ghost sm" style="margin-top:10px" onclick="ext.novoToken=null;render()">Já copiei, fechar</button>`
+        : `<form class="inline-form" onsubmit="event.preventDefault();criarDispositivo()"><input id="d-nome" maxlength="40" placeholder="Nome do celular (ex.: Meu Android)" aria-label="Nome do celular"><button class="btn">Cadastrar celular</button></form>`}
+        ${ativos.length ? `<div class="list" style="margin-top:12px">${ativos.map(d => `<div class="li"><div class="grow"><div class="t">${esc(d.nome)}</div><div class="s">${d.ultimo_uso ? 'Último aviso ' + new Date(d.ultimo_uso).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }) : 'Ainda não mandou avisos'}</div></div><button class="btn danger sm" onclick="revogarDispositivo('${d.id}')">Desativar</button></div>`).join('')}</div>` : ''}
+        <p class="mute small" style="margin-bottom:0">No iPhone a Apple não deixa nenhum app ler as notificações de outro. Lá, use o Open Finance.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Segurança</h2></div>
+    <div class="panel" style="padding:14px 20px">
+      <ul class="seg-lista">
+        <li>Os dados ficam no Supabase, e cada conta só enxerga as próprias movimentações. Isso vale no banco de dados, não só na tela.</li>
+        <li>As chaves da Pluggy ficam guardadas no servidor (cofre criptografado) e nunca chegam ao site.</li>
+        <li>O código do celular é guardado embaralhado (hash). Se o celular for perdido, toque em "Desativar" e ele para na hora.</li>
+        <li>O Open Finance só lê o extrato: não faz Pix nem pagamentos. A autorização vale por tempo limitado e pode ser cancelada aqui ou no app do banco.</li>
+      </ul>
+    </div>
+  </section>`;
+}
+
 /* ================= PLANEJAR ================= */
 let refBanco = { mod:'parcelado', q:'' };
 function tabelaBancos(){
@@ -1879,6 +2148,8 @@ async function novaSenha(){
 }
 async function sair(){
   clearTimeout(save._t); await enviarNuvem();
+  if(ext.canal){ sb.removeChannel(ext.canal); ext.canal = null; }
+  ext = { pend:[], disp:[], con:[], cfg:null, novoToken:null, canal:null, carregando:false, teste:null };
   await sb.auth.signOut();
 }
 
@@ -1897,8 +2168,13 @@ async function abrirApp(user){
   const nome = user.user_metadata?.nome;
   $('#user-email').textContent = nome ? `${nome} · ${user.email}` : user.email;
   document.body.classList.remove('sem-sessao', 'carregando');
+  ext = { pend:[], disp:[], con:[], cfg:null, novoToken:null, canal:null, carregando:false, teste:null };
   render();
+  assinarExternas();
+  carregarExternas();
 }
+// Ao voltar para o app (ex.: depois de abrir o banco no celular), busca as movimentações novas
+document.addEventListener('visibilitychange', () => { if(!document.hidden && usuario) carregarExternas(); });
 
 let _uidAtual = null;
 sb.auth.onAuthStateChange((evento, sessao) => {
