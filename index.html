@@ -143,8 +143,9 @@ html,body{overflow-x:hidden}
 .chart text{font-family:var(--sans);fill:var(--mute);font-size:11px}
 .chart .lbl{fill:var(--text2);font-size:11.5px}
 .cat{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;padding:7px 0;font-size:14px}
-.cat .bar{height:8px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
-.cat .bar i{display:block;height:100%;background:var(--gold2);border-radius:99px}
+.cat .bar,.li .bar{height:8px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden}
+.li .bar{height:5px;max-width:260px}
+.cat .bar i,.li .bar i{display:block;height:100%;background:var(--gold2);border-radius:99px}
 #tip{position:fixed;z-index:50;pointer-events:none;background:#0a0f1c;border:1px solid var(--line);color:var(--text);padding:8px 11px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .12s;white-space:nowrap}
 
 /* formulários */
@@ -504,7 +505,7 @@ function compromissos(ref){
   const out = [];
   for(const g of db.gastos) g.parcelas.forEach((p, i) => {
     if(p.ref === ref) out.push({ kind:'parcela', desc:g.descricao, valor:p.valor, venc:p.venc, paga:p.status === 'paga',
-      cartaoId:g.cartaoId, forma:g.forma, categoria:g.categoria, sub:`${p.n} de ${g.n}`, gid:g.id, idx:i, ultima:p.n === g.n && g.n > 1, primeira:p.n === 1 });
+      cartaoId:g.cartaoId, forma:g.forma, categoria:g.categoria, sub:`${p.n} de ${g.n}`, gid:g.id, idx:i, ultima:p.n === g.n && g.n > 1, primeira:p.n === 1 && g.n > 1 });
   });
   for(const f of db.fixas){
     if(ref < f.desde) continue;
@@ -695,6 +696,27 @@ function vInicio(){
 /* Quadro "o que vem no mês": tudo o que cai num mês (padrão: o próximo), montado na hora
    a partir dos lançamentos, então qualquer gasto, conta fixa ou recebimento novo já aparece. */
 let mesVer = 1; // meses à frente do atual
+
+// Separa os compromissos de um mês por fatura de cada cartão, Pix/boleto/financiamento e contas fixas.
+// Cada conta entra em exatamente um grupo, então a soma dos grupos é o total do mês.
+function separarMes(itens, ref){
+  const [y, m] = ref.split('-').map(Number);
+  const gs = [];
+  for(const c of db.cartoes) gs.push({ titulo:`Fatura ${esc(c.nome)}`, sub:` · vence ${fmtBR(vencimentoFatura(c, y, m))}`, cor:c.cor, cid:c.id, lista:itens.filter(x => x.cartaoId === c.id) });
+  const fora = itens.filter(x => x.kind === 'parcela' && !(x.cartaoId && cardOf(x.cartaoId)));
+  for(const [k, n] of Object.entries(FORMAS)) gs.push({ titulo:esc(n), sub:'', lista:fora.filter(x => (FORMAS[x.forma] ? x.forma : 'pix') === k) });
+  gs.push({ titulo:'Contas fixas', sub:'', lista:itens.filter(x => x.kind === 'fixa') });
+  return gs.filter(g => g.lista.length);
+}
+function gruposMes(itens, ref, comCheck){
+  const tags = x => `${x.primeira && x.kind === 'parcela' ? ' <span class="pill open">Começa</span>' : ''}${x.ultima ? ' <span class="pill ok">Última</span>' : ''}${x.paga && !comCheck ? ' <span class="pill ok">Paga</span>' : ''}${!x.paga && stOf(x) === 'atrasada' ? ' <span class="pill bad">Em atraso</span>' : ''}`;
+  const linha = x => `<div class="li">
+    <div class="grow"><div class="t">${esc(x.desc)}</div><div class="s">${x.sub}, ${esc(x.categoria)}${tags(x)}</div></div>
+    <div class="r">${M(x.valor)}</div>${comCheck ? `<button class="check ${x.paga ? 'on' : ''}" onclick="${actOf(x)}" aria-label="Marcar ${esc(x.desc)} como paga">${I.check}</button>` : ''}</div>`;
+  return separarMes(itens, ref).map(g => `<div class="mes-g">
+    <div class="mes-gh"><div>${g.cor ? `<span class="sw" style="background:${g.cor}"></span> ` : ''}<b>${g.titulo}</b><span class="mute small">${g.sub}</span></div>${M(sum(g.lista, x => x.valor))}</div>
+    <div class="list">${g.lista.sort((a, b) => a.venc.localeCompare(b.venc) || b.valor - a.valor).map(linha).join('')}</div></div>`).join('');
+}
 function vMes(){
   const ref = nextRef(MES_ATUAL(), mesVer);
   const itens = compromissos(ref);
@@ -703,23 +725,7 @@ function vMes(){
   const entra = db.renda + extras, saldo = entra - sai;
   const aPagar = sum(itens.filter(x => !x.paga), x => x.valor);
 
-  const tags = x => `${x.primeira && x.kind === 'parcela' ? ' <span class="pill open">Começa</span>' : ''}${x.ultima ? ' <span class="pill ok">Última</span>' : ''}${x.paga ? ' <span class="pill ok">Paga</span>' : ''}`;
-  const linha = x => `<div class="li">
-    <div class="grow"><div class="t">${esc(x.desc)}</div><div class="s">${x.sub}, ${esc(x.categoria)}${tags(x)}</div></div>
-    <div class="r">${M(x.valor)}</div></div>`;
-  const grupo = (titulo, sub, lista, cor) => lista.length ? `<div class="mes-g">
-    <div class="mes-gh"><div>${cor ? `<span class="sw" style="background:${cor}"></span> ` : ''}<b>${titulo}</b><span class="mute small">${sub}</span></div>${M(sum(lista, x => x.valor))}</div>
-    <div class="list">${lista.sort((a, b) => a.venc.localeCompare(b.venc) || b.valor - a.valor).map(linha).join('')}</div></div>` : '';
-
-  const [y, m] = ref.split('-').map(Number);
-  let html = '';
-  for(const c of db.cartoes){
-    const l = itens.filter(x => x.cartaoId === c.id);
-    html += grupo(`Fatura ${esc(c.nome)}`, ` · vence ${fmtBR(vencimentoFatura(c, y, m))}`, l, c.cor);
-  }
-  const fora = itens.filter(x => x.kind === 'parcela' && !x.cartaoId);
-  for(const [k, n] of Object.entries(FORMAS)) html += grupo(esc(n), '', fora.filter(x => (x.forma || 'pix') === k));
-  html += grupo('Contas fixas', '', itens.filter(x => x.kind === 'fixa'));
+  let html = gruposMes(itens, ref, false);
   if(recs.length) html += `<div class="mes-g">
     <div class="mes-gh"><div><b>Recebimentos</b><span class="mute small"> · fora da renda fixa</span></div><span class="val-in">+ ${M(extras)}</span></div>
     <div class="list">${recs.sort((a, b) => a.data.localeCompare(b.data)).map(p => `<div class="li">
@@ -1230,11 +1236,64 @@ function delGasto(id){
 }
 
 /* ================= FATURAS ================= */
-let fat = { card:null, ref:null };
+let fat = { card:'__geral', ref:null };
+const SETA_E = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>';
+const SETA_D = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>';
+function stepperFat(){
+  return `<div class="row between">
+      <div class="stepper">
+        <button class="iconbtn" onclick="fat.ref=nextRef(fat.ref,-1);render()" aria-label="Mês anterior">${SETA_E}</button>
+        <div style="min-width:170px;text-align:center"><div class="serif" style="font-size:19px">${mesNome(fat.ref)}</div></div>
+        <button class="iconbtn" onclick="fat.ref=nextRef(fat.ref);render()" aria-label="Mês seguinte">${SETA_D}</button>
+      </div>
+      ${fat.ref !== MES_ATUAL() ? `<button class="btn ghost sm" onclick="fat.ref=MES_ATUAL();render()">Ir para o mês atual</button>` : ''}
+    </div>`;
+}
+// Visão geral: todos os gastos do mês, de todos os cartões e fora do cartão, com o total completo
+function vFatGeral(){
+  const itens = compromissos(fat.ref);
+  const total = sum(itens, x => x.valor), pago = sum(itens.filter(x => x.paga), x => x.valor);
+  const atr = itens.filter(x => !x.paga && stOf(x) === 'atrasada');
+  const gs = separarMes(itens, fat.ref);
+  const noCartao = sum(itens.filter(x => x.cartaoId), x => x.valor);
+  const base = baseMensal(fat.ref);
+  const linhaG = g => {
+    const t = sum(g.lista, x => x.valor), p = sum(g.lista.filter(x => x.paga), x => x.valor);
+    return `<div class="li"${g.cid ? ` style="cursor:pointer" onclick="fat.card='${g.cid}';render()" title="Abrir esta fatura"` : ''}>
+      <div class="grow"><div class="t">${g.cor ? `<span class="sw" style="background:${g.cor}"></span> ` : ''}${g.titulo}</div>
+        <div class="s">${g.lista.length} conta${g.lista.length > 1 ? 's' : ''}${g.sub}${p > 0 ? `, pago ${M(p)}` : ''}</div>
+        <div class="bar" style="margin-top:6px"><i style="width:${total > 0 ? t / total * 100 : 0}%"></i></div></div>
+      <div class="r"><div>${M(t)}</div><div class="mute small">${total > 0 ? (t / total * 100).toFixed(0) : 0}% do total</div></div></div>`;
+  };
+  return `
+  <div class="panel">
+    ${stepperFat()}
+    <div style="margin-top:20px">
+      <div class="mute small">Gasto total do mês ${!itens.length ? '' : atr.length ? PILL.atrasada : pago >= total - 0.005 ? PILL.paga : PILL.aberta}</div>
+      <div class="fat-total num"><span class="money">${brl(total)}</span></div>
+      <div class="mute small">Todos os cartões, Pix, boleto, financiamentos e contas fixas.${base > 0 ? ` Isso é ${(total / base * 100).toFixed(0)}% da sua ${db.orcamento > 0 ? 'meta' : 'renda + extras'} (${M(base)}).` : ''}</div>
+    </div>
+    <div class="resumo" style="margin:18px 0 0">
+      <div class="stat"><span class="k">Nos cartões</span><span class="v num"><span class="money">${brl(noCartao)}</span></span><span class="mute small">Fora do cartão ${M(total - noCartao)}</span></div>
+      <div class="stat"><span class="k">Já pago</span><span class="v num ok"><span class="money">${brl(pago)}</span></span><span class="mute small">${total > 0 ? (pago / total * 100).toFixed(0) : 0}% do mês</span></div>
+      <div class="stat"><span class="k">Falta pagar</span><span class="v num ${atr.length ? 'bad' : ''}"><span class="money">${brl(total - pago)}</span></span><span class="mute small">${atr.length ? `${M(sum(atr, x => x.valor))} em atraso` : 'Nada em atraso'}</span></div>
+    </div>
+  </div>
+  <section class="sec">
+    <div class="sec-h"><h2>Por cartão e forma de pagamento</h2><span class="mute">Toque num cartão para abrir a fatura</span></div>
+    <div class="panel" style="padding:6px 20px">${gs.length ? `<div class="list">${gs.map(linhaG).join('')}
+      <div class="li"><div class="grow"><b>Total geral</b></div><div class="r"><b>${M(total)}</b></div></div></div>` : '<div class="empty">Nenhum gasto neste mês.</div>'}</div>
+  </section>
+  <section class="sec">
+    <div class="sec-h"><h2>Todos os gastos do mês</h2><span class="mute">${itens.length} conta${itens.length === 1 ? '' : 's'}</span></div>
+    <div class="panel" style="padding:6px 20px">${gs.length ? gruposMes(itens, fat.ref, true) : '<div class="empty">Nenhum gasto neste mês.</div>'}</div>
+  </section>`;
+}
 function vFaturas(){
-  if(!db.cartoes.length) return '<div class="panel empty">Cadastre um cartão para ver as faturas.<br><button class="btn" onclick="novoCartao=true;setTab(\'cartoes\')">Adicionar cartão</button></div>';
-  if(!fat.card || !cardOf(fat.card)) fat.card = db.cartoes[0].id;
   if(!fat.ref) fat.ref = MES_ATUAL();
+  if(fat.card !== '__geral' && !cardOf(fat.card)) fat.card = '__geral';
+  const chips = `<div class="chips"><button class="chip ${fat.card === '__geral' ? 'on' : ''}" onclick="fat.card='__geral';render()">Geral, todos os gastos</button>${db.cartoes.map(k => `<button class="chip ${k.id===fat.card?'on':''}" onclick="fat.card='${k.id}';render()"><span class="sw" style="background:${k.cor}"></span>${esc(k.nome)}</button>`).join('')}</div>`;
+  if(fat.card === '__geral') return `<div class="sec-h" style="margin-top:0"><h2>Faturas</h2></div>${chips}${vFatGeral()}`;
   const c = cardOf(fat.card);
   const [y,m] = fat.ref.split('-').map(Number);
   const itens = compromissos(fat.ref).filter(x => x.cartaoId === c.id);
@@ -1247,16 +1306,9 @@ function vFaturas(){
   const fecha = fmtISO(new Date(y, m-1, Math.min(c.fechamento, lastF)));
   return `
   <div class="sec-h" style="margin-top:0"><h2>Faturas</h2></div>
-  <div class="chips">${db.cartoes.map(k => `<button class="chip ${k.id===c.id?'on':''}" onclick="fat.card='${k.id}';render()"><span class="sw" style="background:${k.cor}"></span>${esc(k.nome)}</button>`).join('')}</div>
+  ${chips}
   <div class="panel">
-    <div class="row between">
-      <div class="stepper">
-        <button class="iconbtn" onclick="fat.ref=nextRef(fat.ref,-1);render()" aria-label="Fatura anterior"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-        <div style="min-width:170px;text-align:center"><div class="serif" style="font-size:19px">${mesNome(fat.ref)}</div></div>
-        <button class="iconbtn" onclick="fat.ref=nextRef(fat.ref);render()" aria-label="Próxima fatura"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
-      </div>
-      ${fat.ref !== MES_ATUAL() ? `<button class="btn ghost sm" onclick="fat.ref=MES_ATUAL();render()">Ir para o mês atual</button>` : ''}
-    </div>
+    ${stepperFat()}
     <div style="margin-top:20px" class="row between">
       <div>
         <div class="mute small">Total da fatura ${st}</div>
