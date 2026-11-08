@@ -184,7 +184,40 @@ input[type=month],input[type=date]{color-scheme:dark}
 .seg button.on.in{background:rgba(92,200,160,.16);color:var(--ok);box-shadow:inset 0 0 0 1px rgba(92,200,160,.35)}
 .resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 18px}
 .resumo .stat{min-height:92px}
-@media (max-width:600px){.resumo{grid-template-columns:1fr 1fr}.resumo .stat:last-child{grid-column:1/-1}}
+.resumo.r4{grid-template-columns:repeat(4,1fr)}
+.hero-main{display:flex;flex-direction:column}
+.hero-kpis{margin-top:auto;padding-top:22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative;z-index:1}
+.hero-kpis > div{border-top:1px solid rgba(216,195,160,.22);padding-top:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.hero-kpis > div > span{font-size:12px;color:var(--mute)}
+.hero-kpis b{font:500 clamp(16px,2.2vw,21px) var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-kpis b.warn{color:var(--warn)}
+/* extrato do mês */
+.panel.ext{padding:6px 22px 16px}
+.ext-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0 6px}
+.ext-h h3{margin:0;font:500 18px var(--serif);color:var(--text)}
+.ext-h a{font-size:13px;text-decoration:none}
+.ext-sub{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold2);margin:14px 0 2px}
+.ext-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(40,51,79,.55);font-size:15px}
+.ext-row .num{white-space:nowrap;font-variant-numeric:tabular-nums}
+.ext-l{display:flex;align-items:center;gap:12px;min-width:0}
+.sinal{flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font:600 14px var(--sans);background:rgba(255,255,255,.04);color:var(--mute);border:1px solid var(--line)}
+.sinal.in{background:rgba(92,200,160,.10);color:var(--ok);border-color:rgba(92,200,160,.25)}
+.sinal.out{background:rgba(238,124,124,.08);color:var(--bad);border-color:rgba(238,124,124,.22)}
+.sinal.eq{background:linear-gradient(135deg,#F1E3C4,#D2B47C 55%,#B8955C);color:var(--ink);border:0}
+.ext-ini{color:var(--text2)}
+.ext-fim{border-bottom:0;border-top:1px solid rgba(216,195,160,.35);margin-top:6px;padding-top:14px;font-size:16px}
+.ext-fim > .num{font:500 24px var(--serif)}
+.ext-fim .ok{color:var(--ok)} .ext-fim .bad,.ext-status .bad{color:var(--bad)}
+.ext-status{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);font-size:13px;color:var(--mute)}
+.ext-status b{color:var(--text);font-weight:600;margin-left:4px}
+.mes-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:18px;align-items:start}
+/* dívidas */
+.div-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.div-total{font:500 30px var(--serif);margin-top:4px}
+.div-split{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--mute);text-align:right}
+.div-split b{color:var(--text);font-weight:600;margin-left:6px}
+@media (max-width:900px){.mes-grid{grid-template-columns:1fr}}
+@media (max-width:600px){.resumo{grid-template-columns:1fr 1fr}.resumo .stat:last-child{grid-column:1/-1}.resumo.r4{grid-template-columns:1fr 1fr}.resumo.r4 .stat:last-child{grid-column:auto}}
 .tipo{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font:700 16px var(--sans)}
 .tipo.out{background:rgba(238,124,124,.12);color:var(--bad)}
 .tipo.in{background:rgba(92,200,160,.12);color:var(--ok)}
@@ -386,11 +419,13 @@ const PARCELAS_OPC = [...Array(24).keys()].map(i => i + 1).concat([30, 36, 48, 6
 const optsParcelas = (sel = 1, umaVez = 'À vista') => PARCELAS_OPC.map(n => `<option value="${n}" ${n === sel ? 'selected' : ''}>${n === 1 ? umaVez : n + 'x'}</option>`).join('');
 const CORES = ['#C8423B','#2F6FD6','#1E9E6A','#7A4FD0','#D9852B','#C9A15A','#2B9AA8','#3A4256'];
 
-const vazio = () => ({ v:1, cartoes:[], gastos:[], entradas:[], fixas:[], renda:0, orcamento:0, seeds:['lote-2026-11'] });
+const vazio = () => ({ v:1, cartoes:[], gastos:[], entradas:[], fixas:[], renda:0, orcamento:0, seeds:['lote-2026-11'], ajustes:{}, saldoDesde:null });
 function normalizar(d){
   if(!d || d.v !== 1) d = vazio();
   d.cartoes = d.cartoes || []; d.gastos = d.gastos || []; d.fixas = d.fixas || []; d.entradas = d.entradas || [];
   d.renda = d.renda || 0; d.orcamento = d.orcamento || 0; d.seeds = d.seeds || ['lote-2026-11'];
+  d.ajustes = d.ajustes || {};
+  if(!d.saldoDesde) d.saldoDesde = mesKey(new Date()); // o saldo passa a ser contado a partir de agora
   return d;
 }
 let db = vazio();
@@ -415,7 +450,12 @@ async function enviarNuvem(){
 async function carregarNuvem(){
   const { data, error } = await sb.from('dados_financeiros').select('dados').eq('user_id', usuario.id).maybeSingle();
   if(error) throw error;
-  if(data) return normalizar(data.dados);
+  if(data){
+    const semInicio = !(data.dados && data.dados.saldoDesde);
+    const d = normalizar(data.dados);
+    if(semInicio) setTimeout(save, 0); // grava o mês em que o saldo começou a ser contado
+    return d;
+  }
   // Primeira vez desta conta: começa vazia. Se este aparelho tem dados da versão sem login, oferece trazer.
   let d = vazio();
   try{
@@ -527,7 +567,32 @@ function todosAtrasos(){
 // Recebimentos avulsos (não são a renda fixa): entram no mês em que caem
 const parcelasEntrada = () => db.entradas.flatMap(e => e.parcelas.map((p, i) => ({ ...p, eid:e.id, idx:i, desc:e.descricao, categoria:e.categoria, total:e.n })));
 const entradasDoMes = ref => sum(parcelasEntrada().filter(p => p.ref === ref), p => p.valor);
-const baseMensal = (ref = MES_ATUAL()) => db.orcamento > 0 ? db.orcamento : db.renda + entradasDoMes(ref);
+/* Saldo em conta que passa de um mês para o outro.
+   Começa a contar em db.saldoDesde (o mês em que a pessoa passou a usar o app), com o valor informado em
+   db.ajustes[mes] (ou zero). Em cada mês: começa com + renda + recebimentos − parcelas e contas = fica na conta.
+   O que fica vira o "começa com" do mês seguinte. Um ajuste num mês troca o valor previsto pelo real. */
+const saidasDoMes = ref => sum(compromissos(ref), x => x.valor);
+function saldoInicio(ref){
+  const desde = db.saldoDesde || MES_ATUAL();
+  if(ref < desde) return 0;
+  let s = 0, r = desde;
+  for(let i = 0; i < 600; i++){
+    if(db.ajustes && db.ajustes[r] != null) s = Number(db.ajustes[r]);
+    if(r === ref) return round2(s);
+    s = s + db.renda + entradasDoMes(r) - saidasDoMes(r);
+    r = nextRef(r);
+  }
+  return round2(s);
+}
+const saldoFim = ref => round2(saldoInicio(ref) + db.renda + entradasDoMes(ref) - saidasDoMes(ref));
+// Dinheiro disponível no mês: a meta, se houver; senão o que sobrou do mês anterior + renda + recebimentos
+const baseMensal = (ref = MES_ATUAL()) => db.orcamento > 0 ? db.orcamento : saldoInicio(ref) + db.renda + entradasDoMes(ref);
+function ajustarSaldo(ref, valor){
+  db.ajustes = db.ajustes || {};
+  if(valor === null || valor === '' || isNaN(valor)) delete db.ajustes[ref];
+  else { db.ajustes[ref] = round2(Number(valor)); if(ref < (db.saldoDesde || MES_ATUAL())) db.saldoDesde = ref; }
+  save(); render(); toast(valor === null || valor === '' ? 'Ajuste removido' : 'Saldo ajustado');
+}
 
 /* ================= dados informados (aplicados uma única vez) ================= */
 function aplicarLote(){
@@ -627,17 +692,18 @@ function vInicio(){
   const livre = base - total;
   const porDia = livre / diasRest;
 
+  const anterior = saldoInicio(cur);
   let hero;
-  if(base > 0){
-    const pct = Math.min(100, total / base * 100);
+  if(db.orcamento > 0 || db.renda > 0 || extras > 0 || anterior !== 0){
+    const pct = base > 0 ? Math.min(100, total / base * 100) : 100;
     hero = `
       <div class="hero-label">Livre para gastar hoje</div>
       <div class="hero-big num ${porDia < 0 ? 'neg' : ''}"><span class="money">${brl(Math.max(porDia, 0))}</span></div>
       <div class="hero-sub">${livre >= 0
         ? `Sobram ${M(livre)} até o fim de ${mesSo(cur).toLowerCase()}, divididos pelos ${diasRest} dias que faltam.`
-        : `Os compromissos de ${mesSo(cur).toLowerCase()} passam ${M(-livre)} do seu ${db.orcamento > 0 ? 'limite de gastos' : 'salário'}.`}</div>
+        : `Os compromissos de ${mesSo(cur).toLowerCase()} passam ${M(-livre)} do ${db.orcamento > 0 ? 'seu limite de gastos' : 'dinheiro disponível no mês'}.`}</div>
       <div class="meter"><i class="${pct >= 100 ? 'bad' : pct >= 80 ? 'warn' : ''}" style="width:${pct}%"></i></div>
-      <div class="meter-legend"><span>${M(total)} comprometido</span><span>${db.orcamento > 0 ? `Limite de ${M(base)}` : extras > 0 ? `Renda + extras: ${M(base)}` : `Renda de ${M(base)}`}</span></div>`;
+      <div class="meter-legend"><span>${M(total)} de gastos no mês</span><span>${db.orcamento > 0 ? `Limite de ${M(base)}` : anterior !== 0 || extras > 0 ? `Disponível: ${M(base)}` : `Renda de ${M(base)}`}</span></div>`;
   } else {
     hero = `
       <div class="hero-label">Livre para gastar hoje</div>
@@ -652,14 +718,18 @@ function vInicio(){
   const proximos = [...atrasos, ...[...itens, ...compromissos(nextRef(cur))].filter(x => stOf(x) === 'aberta')]
     .sort((a, b) => a.venc.localeCompare(b.venc)).slice(0, 7);
 
+  const divTotal = sum(db.gastos.flatMap(g => g.parcelas).filter(p => p.status !== 'paga'), p => p.valor);
+  const kpis = `<div class="hero-kpis">
+      <div><span>Entrou no mês</span><b class="num val-in"><span class="money">${brl(db.renda + extras)}</span></b></div>
+      <div><span>Gastos do mês</span><b class="num"><span class="money">${brl(total)}</span></b></div>
+      <div><span>Dívidas em aberto</span><b class="num ${divTotal > 0 ? 'warn' : ''}"><span class="money">${brl(divTotal)}</span></b></div>
+    </div>`;
   return `
   <section class="hero">
-    <div class="hero-main">${hero}</div>
-    <div class="hero-side">
-      <div class="stat"><span class="k">Compromissos de ${mesSo(cur).toLowerCase()}</span><span class="v num"><span class="money">${brl(total)}</span></span></div>
-      <div class="stat" style="cursor:pointer" onclick="filtro.tipo='in';filtro.status='';setTab('lanc')" title="Ver recebimentos"><span class="k">Extras de ${mesSo(cur).toLowerCase()}</span><span class="v num ok"><span class="money">${brl(extras)}</span></span>${extras > extrasRecebidos ? `<span class="mute small">${M(extras - extrasRecebidos)} a receber</span>` : ''}</div>
-      <div class="stat"><span class="k">Já pago</span><span class="v num ok"><span class="money">${brl(pago)}</span></span></div>
-      <div class="stat"><span class="k">${atrasos.length ? `Em atraso, ${atrasos.length} conta${atrasos.length > 1 ? 's' : ''}` : 'Em atraso'}</span><span class="v num ${atrasos.length ? 'bad' : ''}"><span class="money">${brl(totAtraso)}</span></span></div>
+    <div class="hero-main">${hero}${kpis}</div>
+    <div class="panel ext">
+      <div class="ext-h"><h3>Resumo de ${mesSo(cur).toLowerCase()}</h3><a href="#" onclick="event.preventDefault();fat.card='__geral';fat.ref=MES_ATUAL();setTab('faturas')">Ver gastos</a></div>
+      ${extrato(cur)}
     </div>
   </section>
 
@@ -672,8 +742,8 @@ function vInicio(){
 
   <section class="sec two">
     <div>
-      <div class="sec-h"><h2>Próximos vencimentos</h2></div>
-      <div class="panel" style="padding:6px 20px">${proximos.length ? `<div class="list">${proximos.map(linhaVenc).join('')}</div>` : '<div class="empty">Nada para pagar agora. Tudo em dia.</div>'}</div>
+      <div class="sec-h"><h2>Dívidas em aberto</h2><span class="mute">Parcelas que ainda faltam</span></div>
+      <div class="panel" style="padding:16px 20px 6px">${vDividas()}</div>
     </div>
     <div>
       <div class="sec-h"><h2>Avisos</h2></div>
@@ -683,19 +753,81 @@ function vInicio(){
 
   <section class="sec two">
     <div>
-      <div class="sec-h"><h2>Próximos 12 meses</h2><span class="mute">Quanto já está comprometido</span></div>
-      <div class="panel">${grafProjecao()}</div>
+      <div class="sec-h"><h2>Próximos vencimentos</h2></div>
+      <div class="panel" style="padding:6px 20px">${proximos.length ? `<div class="list">${proximos.map(linhaVenc).join('')}</div>` : '<div class="empty">Nada para pagar agora. Tudo em dia.</div>'}</div>
     </div>
     <div>
       <div class="sec-h"><h2>Por categoria</h2><span class="mute">${mesSo(cur)}</span></div>
       <div class="panel">${grafCategorias(itens)}</div>
     </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Próximos 12 meses</h2><span class="mute">Quanto já está comprometido</span></div>
+    <div class="panel">${grafProjecao()}</div>
   </section>`;
 }
 
 /* Quadro "o que vem no mês": tudo o que cai num mês (padrão: o próximo), montado na hora
    a partir dos lançamentos, então qualquer gasto, conta fixa ou recebimento novo já aparece. */
 let mesVer = 1; // meses à frente do atual
+
+/* Extrato do mês, no formato de extrato bancário: começa com, o que entra (renda, recebimentos),
+   o que sai separado por tipo (cartão, Pix/débito, boleto, financiamento, contas fixas) e o que fica na conta. */
+function extrato(ref){
+  const itens = compromissos(ref), recs = parcelasEntrada().filter(p => p.ref === ref);
+  const ini = saldoInicio(ref), ext = sum(recs, p => p.valor), extRec = sum(recs.filter(p => p.status === 'recebida'), p => p.valor);
+  const tot = l => sum(l, x => x.valor);
+  const parc = itens.filter(x => x.kind === 'parcela');
+  const forma = x => FORMAS[x.forma] ? x.forma : 'pix';
+  const sai = {
+    cartao: tot(parc.filter(x => x.cartaoId)),
+    pix: tot(parc.filter(x => !x.cartaoId && forma(x) === 'pix')),
+    boleto: tot(parc.filter(x => !x.cartaoId && forma(x) === 'boleto')),
+    fin: tot(parc.filter(x => !x.cartaoId && forma(x) === 'financiamento')),
+    fixa: tot(itens.filter(x => x.kind === 'fixa'))
+  };
+  const totSai = tot(itens), fim = round2(ini + db.renda + ext - totSai);
+  const pago = tot(itens.filter(x => x.paga)), atr = tot(itens.filter(x => !x.paga && stOf(x) === 'atrasada'));
+  const nCart = new Set(parc.filter(x => x.cartaoId).map(x => x.cartaoId)).size;
+  const linha = (sinal, rotulo, det, v, cls = '') => `<div class="ext-row ${cls}"><div class="ext-l"><span class="sinal ${sinal === '+' ? 'in' : sinal === '−' ? 'out' : ''}">${sinal}</span><div><div>${rotulo}</div>${det ? `<div class="mute small">${det}</div>` : ''}</div></div><div class="num ${sinal === '+' ? 'val-in' : ''}">${M(v)}</div></div>`;
+  const mesAnt = mesSo(nextRef(ref, -1)).toLowerCase();
+  let h = linha('', 'Começa com', ini < 0 ? `Falta que veio de ${mesAnt}` : ref === (db.saldoDesde || MES_ATUAL()) && !(db.ajustes && db.ajustes[ref] != null) ? 'Início da contagem' : `Sobra de ${mesAnt}`, ini, 'ext-ini');
+  h += `<div class="ext-sub">Entra</div>`;
+  h += linha('+', 'Renda', 'Salário e renda fixa', db.renda);
+  if(ext > 0) h += linha('+', 'Recebimentos', ext > extRec ? `${M(extRec)} já caiu, ${M(ext - extRec)} a receber` : 'Já caiu na conta', ext);
+  h += `<div class="ext-sub">Sai</div>`;
+  if(sai.cartao) h += linha('−', 'Cartões de crédito', `${nCart} fatura${nCart > 1 ? 's' : ''}`, sai.cartao);
+  if(sai.pix) h += linha('−', 'Pix, débito e dinheiro', '', sai.pix);
+  if(sai.boleto) h += linha('−', 'Boletos', '', sai.boleto);
+  if(sai.fin) h += linha('−', 'Financiamentos e empréstimos', '', sai.fin);
+  if(sai.fixa) h += linha('−', 'Contas fixas', '', sai.fixa);
+  if(!totSai) h += `<div class="ext-row"><div class="mute small">Nenhum gasto lançado.</div></div>`;
+  h += `<div class="ext-row ext-fim"><div class="ext-l"><span class="sinal eq">=</span><div><div>Fica na conta</div><div class="mute small">${fim < 0 ? 'Vai faltar dinheiro' : `Passa para ${mesSo(nextRef(ref)).toLowerCase()}`}</div></div></div><div class="num ${fim < 0 ? 'bad' : 'ok'}">${M(fim)}</div></div>`;
+  if(totSai) h += `<div class="ext-status"><span>Pago <b class="money">${brl(pago)}</b></span><span>Falta pagar <b class="money">${brl(totSai - pago)}</b></span>${atr > 0 ? `<span class="bad">Em atraso <b class="money">${brl(atr)}</b></span>` : ''}</div>`;
+  return h;
+}
+
+/* Dívidas em aberto: tudo o que ainda falta pagar das compras parceladas, empréstimos e financiamentos,
+   somando todas as parcelas não pagas (deste mês em diante e as atrasadas). */
+function vDividas(){
+  const ds = db.gastos.map(g => {
+    const ab = g.parcelas.filter(p => p.status !== 'paga');
+    return { g, falta:round2(sum(ab, p => p.valor)), n:ab.length, fim:g.parcelas[g.parcelas.length - 1].ref, atr:ab.some(p => parseISO(p.venc) < hoje()) };
+  }).filter(d => d.falta > 0.004);
+  if(!ds.length) return '<div class="empty">Nenhuma dívida em aberto.</div>';
+  const total = sum(ds, d => d.falta);
+  const grupos = [];
+  for(const c of db.cartoes){ const l = ds.filter(d => d.g.cartaoId === c.id); if(l.length) grupos.push([`<span class="sw" style="background:${c.cor}"></span> ${esc(c.nome)}`, l]); }
+  for(const [k, n] of Object.entries(FORMAS)){ const l = ds.filter(d => !d.g.cartaoId && (FORMAS[d.g.forma] ? d.g.forma : 'pix') === k); if(l.length) grupos.push([esc(n), l]); }
+  const noCartao = sum(ds.filter(d => d.g.cartaoId), d => d.falta);
+  return `<div class="div-top"><div><div class="mute small">Total que ainda falta pagar</div><div class="div-total num"><span class="money">${brl(total)}</span></div></div>
+    <div class="div-split"><span>Cartões <b class="money">${brl(noCartao)}</b></span><span>Fora do cartão <b class="money">${brl(total - noCartao)}</b></span></div></div>
+    ${grupos.map(([t, l]) => `<div class="mes-g"><div class="mes-gh"><div><b>${t}</b></div>${M(sum(l, d => d.falta))}</div>
+      <div class="list">${l.sort((a, b) => b.falta - a.falta).map(d => `<div class="li"><div class="grow"><div class="t">${esc(d.g.descricao)}</div>
+        <div class="s">${d.n === 1 ? 'Falta 1 parcela' : `Faltam ${d.n} de ${d.g.n} parcelas`}, termina em ${mesCurto(d.fim)}/${d.fim.slice(2, 4)}${d.g.juros > 0 ? `, juros ${Number(d.g.juros).toLocaleString('pt-BR')}% a.m.` : ''}${d.atr ? ' <span class="pill bad">Em atraso</span>' : ''}</div></div>
+        <div class="r">${M(d.falta)}</div></div>`).join('')}</div></div>`).join('')}`;
+}
 
 // Separa os compromissos de um mês por fatura de cada cartão, Pix/boleto/financiamento e contas fixas.
 // Cada conta entra em exatamente um grupo, então a soma dos grupos é o total do mês.
@@ -722,8 +854,9 @@ function vMes(){
   const itens = compromissos(ref);
   const recs = parcelasEntrada().filter(p => p.ref === ref);
   const sai = sum(itens, x => x.valor), extras = sum(recs, p => p.valor);
-  const entra = db.renda + extras, saldo = entra - sai;
+  const anterior = saldoInicio(ref), entra = db.renda + extras, saldo = round2(anterior + entra - sai);
   const aPagar = sum(itens.filter(x => !x.paga), x => x.valor);
+  const mesAnt = mesSo(nextRef(ref, -1)).toLowerCase();
 
   let html = gruposMes(itens, ref, false);
   if(recs.length) html += `<div class="mes-g">
@@ -738,12 +871,10 @@ function vMes(){
   <section class="sec">
     <div class="sec-h"><h2>${mesVer === 1 ? 'Próximo mês' : 'O que vem'}: ${mesNome(ref)}</h2>
       <div class="row" style="flex:none;flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" onclick="mesVer=Math.max(0,mesVer-1);render()" ${mesVer <= 0 ? 'disabled' : ''} aria-label="Mês anterior">‹</button><button class="btn ghost sm" onclick="mesVer=Math.min(24,mesVer+1);render()" aria-label="Mês seguinte">›</button></div></div>
-    <div class="resumo">
-      <div class="stat"><span class="k">Entra</span><span class="v num ok"><span class="money">${brl(entra)}</span></span><span class="mute small">${extras > 0 ? `Renda ${M(db.renda)} + extras ${M(extras)}` : 'Renda fixa'}</span></div>
-      <div class="stat"><span class="k">Para pagar</span><span class="v num"><span class="money">${brl(sai)}</span></span><span class="mute small">${itens.length} conta${itens.length === 1 ? '' : 's'}${aPagar < sai - 0.005 ? `, faltam ${M(aPagar)}` : ''}</span></div>
-      <div class="stat"><span class="k">Sobra</span><span class="v num ${saldo < 0 ? 'bad' : 'ok'}"><span class="money">${brl(saldo)}</span></span><span class="mute small">${saldo < 0 ? 'Vai faltar no mês' : 'Depois de pagar tudo'}</span></div>
+    <div class="mes-grid">
+      <div class="panel ext"><div class="ext-h"><h3>Extrato previsto</h3></div>${extrato(ref)}</div>
+      <div class="panel" style="padding:6px 20px"><div class="ext-h" style="padding-top:12px"><h3>Contas do mês</h3><span class="mute small">${itens.length} conta${itens.length === 1 ? '' : 's'}${aPagar < sai - 0.005 ? `, faltam ${brl(aPagar)}` : ''}</span></div>${html || `<div class="empty">Nada lançado para ${mesSo(ref).toLowerCase()} ainda.</div>`}</div>
     </div>
-    <div class="panel" style="padding:6px 20px">${html || `<div class="empty">Nada lançado para ${mesSo(ref).toLowerCase()} ainda.</div>`}</div>
     ${novos || fins.length ? `<p class="mute small" style="margin:10px 2px 0">${novos ? `${novos} parcelamento${novos > 1 ? 's começam' : ' começa'} neste mês. ` : ''}${fins.length ? `${fins.map(x => esc(x.desc)).join(', ')} ${fins.length > 1 ? 'terminam' : 'termina'} neste mês.` : ''}</p>` : ''}
   </section>`;
 }
@@ -780,7 +911,7 @@ function avisos(atrasos){
   if(aReceber.length) out.push(['ok', I.up, `<b>${M(sum(aReceber, p => p.valor))} a receber em ${mesSo(cur).toLowerCase()}</b>: ${aReceber.slice(0, 3).map(p => esc(p.desc)).join(', ')}${aReceber.length > 3 ? '…' : ''}. Marque quando cair na conta.`]);
   if(baseMensal(nextRef(cur)) > 0){
     const r = nextRef(cur), v = sum(compromissos(r), x => x.valor);
-    if(v > baseMensal(r)) out.push(['warn', I.up, `<b>${mesSo(r)} já passa da sua ${db.orcamento > 0 ? 'meta' : 'renda'}</b>: ${M(v)} comprometidos.`]);
+    if(v > baseMensal(r)) out.push(['warn', I.up, `<b>${mesSo(r)} já passa ${db.orcamento > 0 ? 'da sua meta' : 'do dinheiro previsto para o mês'}</b>: ${M(v)} comprometidos${db.orcamento > 0 ? '' : ` para ${M(baseMensal(r))} disponíveis`}.`]);
   }
   if(!out.length) return '<div class="empty">Nenhum aviso. Suas contas estão sob controle.</div>';
   return out.slice(0, 5).map(([k, ic, t]) => `<div class="alert ${k}"><div class="ic">${ic}</div><div>${t}</div></div>`).join('');
@@ -959,11 +1090,13 @@ function vLanc(){
   const totReceber = sum(entradas.flatMap(e => e.parcelas).filter(p => p.status !== 'recebida'), p => p.valor);
 
   const cur = MES_ATUAL();
-  const extras = entradasDoMes(cur), entra = db.renda + extras, sai = sum(compromissos(cur), x => x.valor), saldo = entra - sai;
-  const resumo = `<div class="resumo">
+  const anterior = saldoInicio(cur);
+  const extras = entradasDoMes(cur), entra = db.renda + extras, sai = sum(compromissos(cur), x => x.valor), saldo = round2(anterior + entra - sai);
+  const resumo = `<div class="resumo r4">
+    <div class="stat"><span class="k">Começou ${mesSo(cur).toLowerCase()} com</span><span class="v num ${anterior < 0 ? 'bad' : ''}"><span class="money">${brl(anterior)}</span></span><span class="mute small"><a href="#" onclick="event.preventDefault();setTab('planejar')">Ajustar saldo</a></span></div>
     <div class="stat"><span class="k">Entra em ${mesSo(cur).toLowerCase()}</span><span class="v num ok"><span class="money">${brl(entra)}</span></span><span class="mute small">${extras > 0 ? `Renda ${M(db.renda)} + extras ${M(extras)}` : 'Renda fixa'}</span></div>
     <div class="stat"><span class="k">Sai em ${mesSo(cur).toLowerCase()}</span><span class="v num"><span class="money">${brl(sai)}</span></span><span class="mute small">Parcelas e contas do mês</span></div>
-    <div class="stat"><span class="k">Saldo previsto</span><span class="v num ${saldo < 0 ? 'bad' : 'ok'}"><span class="money">${brl(saldo)}</span></span><span class="mute small">${saldo < 0 ? 'Faltando no mês' : 'Sobrando no mês'}</span></div>
+    <div class="stat"><span class="k">Fica na conta</span><span class="v num ${saldo < 0 ? 'bad' : 'ok'}"><span class="money">${brl(saldo)}</span></span><span class="mute small">${saldo < 0 ? 'Faltando no mês' : `Passa para ${mesSo(nextRef(cur)).toLowerCase()}`}</span></div>
   </div>`;
   const resumoLista = [gastos.length ? `faltando pagar ${M(totRest)}` : '', entradas.length && totReceber > 0 ? `a receber ${M(totReceber)}` : ''].filter(Boolean).join(' e ');
   return `
@@ -1380,6 +1513,36 @@ function calcMaq(e){
     Taxa de <b>${pct(t)}</b> ${forma}: descontam ${M(desc)} e você recebe <b class="good">${M(recebe)}</b>.<br>
     Para receber ${M(v)} limpos, cobre ${M(cobrar)}${i >= 2 ? ` (${i}x de ${M(round2(cobrar / i))})` : ''}.</div>`;
 }
+// Saldo em conta mês a mês: o que sobra num mês (recebeu − pagou) passa para o seguinte
+function vSaldo(){
+  const cur = MES_ATUAL(), desde = db.saldoDesde || cur;
+  let r = nextRef(cur, -2) < desde ? desde : nextRef(cur, -2);
+  const linhas = [];
+  for(let i = 0; i < 9; i++){
+    const ini = saldoInicio(r), ent = db.renda + entradasDoMes(r), sai = saidasDoMes(r), fim = round2(ini + ent - sai);
+    const aj = db.ajustes && db.ajustes[r] != null;
+    linhas.push(`<tr${r === cur ? ' style="background:rgba(216,195,160,.06)"' : ''}><td>${mesCurto(r)}/${r.slice(2, 4)}${r === cur ? ' <span class="pill open">Agora</span>' : ''}${aj ? ' <span class="pill ok" title="Valor informado por você">Ajustado</span>' : ''}</td>
+      <td class="num" style="text-align:right">${M(ini)}</td><td class="num val-in" style="text-align:right">+ ${M(ent)}</td><td class="num" style="text-align:right">− ${M(sai)}</td>
+      <td class="num ${fim < 0 ? 'bad' : ''}" style="text-align:right"><b>${M(fim)}</b></td></tr>`);
+    r = nextRef(r);
+  }
+  const ajCur = db.ajustes && db.ajustes[cur] != null;
+  return `
+  <section class="sec">
+    <div class="sec-h"><h2>Saldo em conta</h2><span class="mute">O que sobra num mês passa para o seguinte</span></div>
+    <div class="panel">
+      <p class="mute small" style="margin-top:0">Em cada mês: começa com o que sobrou do mês anterior, soma a renda e os recebimentos e desconta as parcelas, os Pix e as contas.
+        O que fica na conta vira o começo do mês seguinte. O app conta a partir de ${mesNome(desde).toLowerCase()}.
+        Se o banco mostrar outro valor (por gastos do dia a dia que não foram lançados), informe abaixo o valor real e o app corrige daqui para frente.</p>
+      <form class="inline-form" onsubmit="event.preventDefault();const v=val('s-aj');ajustarSaldo('${cur}', v === '' ? null : num(v))">
+        <input id="s-aj" type="number" step="0.01" value="${ajCur ? db.ajustes[cur] : ''}" placeholder="Saldo em 1º de ${mesSo(cur).toLowerCase()}: ${brl(saldoInicio(cur))}" aria-label="Saldo em conta no início do mês">
+        <button class="btn">Ajustar saldo</button>
+        ${ajCur ? `<button type="button" class="btn ghost" onclick="ajustarSaldo('${cur}', null)">Voltar ao previsto</button>` : ''}
+      </form>
+      <div style="overflow-x:auto;margin-top:14px"><table><thead><tr><th>Mês</th><th style="text-align:right">Começa com</th><th style="text-align:right">Entra</th><th style="text-align:right">Sai</th><th style="text-align:right">Fica na conta</th></tr></thead><tbody>${linhas.join('')}</tbody></table></div>
+    </div>
+  </section>`;
+}
 function vPlanejar(){
   const cur = MES_ATUAL();
   return `
@@ -1391,6 +1554,8 @@ function vPlanejar(){
       <button class="btn">Salvar valores</button>
     </form>
   </div>
+
+  ${vSaldo()}
 
   <section class="sec">
     <div class="sec-h"><h2>Contas fixas</h2><span class="mute">Aluguel, internet, assinaturas</span></div>
@@ -1728,7 +1893,7 @@ async function abrirApp(user){
   }
   migrarCores();
   tab = 'inicio'; novoCartao = false; editCard = null; novoGasto = false; editGasto = null;
-  filtro = { q:'', cartao:'', status:'ativos' }; abertos = new Set(); fat = { card:null, ref:null };
+  filtro = { q:'', cartao:'', status:'ativos', tipo:'' }; abertos = new Set(); fat = { card:null, ref:null };
   const nome = user.user_metadata?.nome;
   $('#user-email').textContent = nome ? `${nome} · ${user.email}` : user.email;
   document.body.classList.remove('sem-sessao', 'carregando');
